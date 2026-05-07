@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>FEG Stage PRO — Калькулятор сцены</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#111820">
+    <link rel="apple-touch-icon" href="icon-180.png">
+
+    <!-- Библиотеки для PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #080c10;
+            --panel: #10171e;
+            --panel-2: #141c24;
+            --panel-3: #1a232c;
+            --line: #2a333c;
+            --line-soft: rgba(255,255,255,0.08);
+            --text: #f3f6f8;
+            --ink: #f3f6f8;
+            --muted: #a6b0bb;
+            --muted-2: #7e8a96;
+            --accent: #c7a77a;
+            --accent-dark: #7e6141;
+            --accent-soft: rgba(196,160,111,0.16);
+            --danger: #ef4444;
+            --success: #9bbb64;
+            --wood-1: #6e573f;
+            --wood-2: #4a3529;
+            --wood-3: #2b211c;
+            --wood-line: rgba(236, 210, 172, 0.42);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at top left, rgba(196,160,111,0.16), transparent 28%), linear-gradient(135deg, #090d10 0%, #111820 45%, #0b1015 100%);
+            padding: 20px 16px 40px;
+            color: var(--text);
+        }
+
+        .app-container {
+            max-width: 980px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, rgba(21,29,37,0.98), rgba(12,17,22,0.98));
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 32px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.45);
+            overflow: hidden;
+            padding: 24px 20px 32px;
+            transition: all 0.2s ease;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 12px 12px 32px;
+            }
+            .app-container {
+                padding: 20px 16px 28px;
+                border-radius: 28px;
+            }
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            margin-bottom: 22px;
+        }
+        .logo {
+            flex: 0 0 auto;
+        }
+        .logo img {
+            width: 148px;
+            max-width: 34vw;
+            height: auto;
+            border-radius: 24px;
+            border: 1px solid rgba(199,167,122,0.35);
+            box-shadow: 0 16px 38px rgba(0,0,0,0.32);
+            display: block;
+        }
+        .app-title {
+            flex: 1;
+            min-width: 0;
+        }
+        .app-title h1 {
+            margin: 0;
+            font-size: clamp(2rem, 5vw, 3.25rem);
+            line-height: 1;
+            letter-spacing: -0.04em;
+            color: var(--text);
+            font-weight: 850;
+        }
+        .app-title h1 span {
+            color: var(--accent);
+        }
+        .app-title p {
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: clamp(1rem, 2vw, 1.18rem);
+        }
+        @media (max-width: 640px) {
+            .app-header { align-items: flex-start; gap: 14px; }
+            .logo img { width: 104px; border-radius: 20px; }
+            .app-title h1 { font-size: 1.85rem; }
+            .app-title p { font-size: 0.92rem; }
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.75rem 0;
+            color: var(--text);
+            letter-spacing: -0.2px;
+            border-left: 4px solid var(--accent);
+            padding-left: 12px;
+        }
+        h3:first-of-type {
+            margin-top: 0;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+        .field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 160px;
+        }
+        .field.small {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        input, select {
+            background: #0f151c;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 12px 16px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s;
+            color: var(--text);
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(196,160,111,0.22);
+            background: #111820;
+        }
+
+        button {
+            border: 1px solid var(--line);
+            border-radius: 40px;
+            padding: 12px 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text);
+            background: #141c24;
+        }
+        button:hover {
+            background: #1b2630;
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .action-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0 16px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #d1b184, #8d6d46);
+            border-color: #d1b184;
+        }
+        .btn-secondary {
+            background: #111820;
+            border-color: var(--line);
+            color: var(--text);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #8aa85a, #5f7939);
+            border-color: #8aa85a;
+            color: white;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #9bbb64, #6e8d42);
+            border-color: #9bbb64;
+        }
+        .btn-danger {
+            background: rgba(239,68,68,0.12);
+            border-color: rgba(239,68,68,0.35);
+            color: #fecaca;
+        }
+        .btn-danger:hover {
+            background: rgba(239,68,68,0.2);
+            border-color: rgba(239,68,68,0.55);
+        }
+
+        .client-area, .stage-editor-card {
+            background: linear-gradient(180deg, #141c24, #10161d);
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 8px;
+            border: 1px solid var(--line);
+        }
+        .flex-client {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .flex-client .field {
+            margin-bottom: 0;
+        }
+        .client-select-block {
+            margin-top: 12px;
+        }
+        .hint {
+            font-size: 0.75rem;
+            color: var(--muted-2);
+            margin-top: 4px;
+            line-height: 1.35;
+        }
+
+        .grid-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
+            margin-bottom: 14px;
+        }
+        .grid-toolbar .field {
+            min-width: 110px;
+            max-width: 160px;
+        }
+
+        .stage-grid-wrap {
+            width: 100%;
+            overflow: auto;
+            background: radial-gradient(circle at 30% 20%, rgba(199,167,122,0.05), transparent 26%), #0c1217;
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 12px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .stage-grid {
+            --cell-size: 30px;
+            display: grid;
+            grid-template-columns: repeat(20, var(--cell-size));
+            grid-template-rows: repeat(20, var(--cell-size));
+            gap: 0;
+            width: max-content;
+            margin: 0 auto;
+            user-select: none;
+            touch-action: none;
+        }
+        .stage-cell {
+            appearance: none;
+            -webkit-appearance: none;
+            display: block;
+            width: var(--cell-size);
+            height: var(--cell-size);
+            min-width: var(--cell-size);
+            min-height: var(--cell-size);
+            border-radius: 0;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.025);
+            cursor: crosshair;
+            position: relative;
+            padding: 0;
+            margin: 0;
+            line-height: 1;
+            box-shadow: none;
+            transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
+        }
+        .stage-cell:hover {
+            transform: scale(1.04);
+            border-color: var(--accent);
+        }
+        .stage-cell.active {
+            background-color: #382923;
+            background-image:
+                radial-gradient(ellipse at 50% 50%, rgba(169,134,96,0.42) 0 12%, transparent 13% 100%),
+                radial-gradient(ellipse at 50% 50%, rgba(16,12,10,0.72) 0 23%, transparent 24% 100%),
+                linear-gradient(45deg, transparent 45%, rgba(214,180,132,0.28) 46%, rgba(214,180,132,0.28) 51%, transparent 52%),
+                linear-gradient(-45deg, transparent 45%, rgba(214,180,132,0.18) 46%, rgba(214,180,132,0.18) 51%, transparent 52%),
+                linear-gradient(135deg, #6b523d 0%, #4b382d 45%, #241b18 100%);
+            background-size: 15px 15px, 15px 15px, 15px 15px, 15px 15px, 100% 100%;
+            border-color: rgba(199,167,122,0.72);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.07), inset 0 -3px 5px rgba(0,0,0,0.32), 0 0 10px rgba(199,167,122,0.12);
+        }
+        .stage-cell.active::after {
+            content: '';
+            position: absolute;
+            inset: 7px;
+            border-radius: 4px;
+            border: 1px solid rgba(236,210,172,0.22);
+        }
+        .stage-cell.origin {
+            outline: 2px dashed rgba(59,130,246,0.35);
+            outline-offset: -4px;
+        }
+        .stage-cell.front-row::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            right: 7px;
+            bottom: 3px;
+            height: 2px;
+            border-radius: 4px;
+            background: rgba(196,160,111,0.75);
+        }
+
+        .zoom-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 280px;
+            flex: 1;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: #10171e;
+        }
+        .zoom-control label {
+            white-space: nowrap;
+            margin: 0;
+        }
+        .zoom-control input[type=range] {
+            flex: 1;
+            min-width: 120px;
+            padding: 0;
+            border: 0;
+            accent-color: var(--accent);
+            background: transparent;
+        }
+        .zoom-control output {
+            min-width: 58px;
+            text-align: right;
+            color: var(--accent);
+            font-weight: 800;
+        }
+
+        .grid-caption {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .result-card {
+            background: linear-gradient(180deg, #151d25, #10161d);
+            border-radius: 28px;
+            padding: 6px 0;
+            margin: 18px 0 10px;
+            border: 1px solid var(--line);
+            overflow: hidden;
+        }
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 12px;
+        }
+        .result-grid div {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-weight: 500;
+        }
+        .result-grid div:nth-child(odd) {
+            background-color: #18212a;
+            font-weight: 600;
+            color: var(--muted);
+        }
+        .result-grid div:nth-child(even) {
+            background-color: #111820;
+            text-align: right;
+            font-weight: 700;
+            color: #d7b989;
+        }
+        .result-grid div:last-child, .result-grid div:nth-last-child(2) {
+            border-bottom: none;
+        }
+
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .order-card {
+            background: #121a22;
+            border-radius: 24px;
+            border: 1px solid var(--line);
+            padding: 16px 18px;
+            transition: 0.1s linear;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .order-info { flex: 3; }
+        .order-info strong {
+            font-size: 1.05rem;
+            color: var(--text);
+            display: inline-block;
+            margin-right: 12px;
+        }
+        .order-info .project-name {
+            font-weight: 500;
+            color: var(--muted);
+            background: #0e141a;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+        .order-info .order-details {
+            margin-top: 6px;
+            font-size: 0.85rem;
+            color: var(--muted);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .order-price {
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--text);
+            background: rgba(196,160,111,0.14);
+            padding: 5px 16px;
+            border-radius: 60px;
+        }
+        .delete-order {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--muted);
+            padding: 6px 10px;
+            border-radius: 40px;
+            transition: all 0.15s;
+            line-height: 1;
+        }
+        .delete-order:hover {
+            color: #dc2626;
+            background: rgba(239,68,68,0.12);
+            transform: scale(1.05);
+        }
+
+        #pdfContent {
+            background: white;
+            padding: 30px;
+            font-family: 'Inter', system-ui, sans-serif;
+            max-width: 1000px;
+            line-height: 1.5;
+            color: #000;
+        }
+        #pdfContent h2 {
+            color: #1e293b;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--accent);
+            display: inline-block;
+        }
+        #pdfData {
+            margin-top: 20px;
+            font-size: 15px;
+        }
+
+        .pdf-mini-grid {
+            display: grid;
+            grid-template-columns: repeat(20, 14px);
+            gap: 1px;
+            margin-top: 10px;
+            width: max-content;
+            background: #d7dde3;
+            padding: 6px;
+            border: 1px solid #aeb7c0;
+        }
+        .pdf-mini-cell {
+            width: 14px;
+            height: 14px;
+            border: 1px solid #c5ccd3;
+            background: #ffffff;
+        }
+        .pdf-mini-cell.active {
+            background-color: #4a3529;
+            border-color: #201712;
+            background-image:
+                radial-gradient(circle at 30% 30%, rgba(255,255,255,0.16) 0 1px, transparent 1px),
+                linear-gradient(135deg, rgba(196,160,111,0.35), rgba(48,35,27,0.35)),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 5px);
+        }
+        .tech-pdf {
+            font-family: Inter, Arial, sans-serif;
+            color: #101820;
+        }
+        .tech-pdf .tech-top {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin: 14px 0 18px;
+            font-size: 13px;
+        }
+        .tech-pdf .tech-box {
+            border: 1px solid #222;
+            padding: 10px 12px;
+            min-height: 72px;
+        }
+        .tech-pdf .section-title {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: .3px;
+            text-transform: uppercase;
+            margin: 18px 0 8px;
+            border-bottom: 2px solid #111;
+            padding-bottom: 4px;
+        }
+        .tech-pdf table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .tech-pdf th,
+        .tech-pdf td {
+            border: 1px solid #222;
+            padding: 7px 8px;
+            vertical-align: middle;
+        }
+        .tech-pdf th {
+            background: #e7e1d7;
+            text-align: left;
+            font-weight: 800;
+        }
+        .tech-pdf .qty {
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            width: 90px;
+        }
+        .tech-pdf .scheme-row {
+            display: grid;
+            grid-template-columns: 330px 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+        .tech-pdf .notes {
+            font-size: 12px;
+            line-height: 1.45;
+        }
+        .tech-pdf .signature-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        .tech-pdf .sign-line {
+            border-top: 1px solid #111;
+            padding-top: 6px;
+        }
+
+
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 2000;
+        }
+        .modal-backdrop.open { display: flex; }
+        .pdf-modal {
+            width: min(960px, 100%);
+            max-height: 92vh;
+            background: #121a22;
+            border: 1px solid var(--line);
+            border-radius: 28px;
+            box-shadow: 0 24px 80px rgba(15, 23, 42, 0.35);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .pdf-modal-header {
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid var(--line);
+        }
+        .pdf-modal-title {
+            font-weight: 800;
+            color: var(--text);
+        }
+        .pdf-modal-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--line);
+            background: #10161d;
+        }
+        .pdf-preview-frame {
+            width: 100%;
+            height: min(68vh, 760px);
+            border: 0;
+            background: #0e141a;
+        }
+        .close-modal {
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+
+
+        .orders-table-wrap {
+            overflow-x: auto;
+            border-radius: 22px;
+            border: 1px solid var(--line);
+            background: #0f151c;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        .orders-table {
+            width: 100%;
+            min-width: 780px;
+            border-collapse: collapse;
+            table-layout: fixed;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        .orders-table th {
+            background: linear-gradient(180deg, rgba(196,160,111,0.32), rgba(110,87,63,0.28));
+            color: #f8efe2;
+            text-align: left;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 12px 10px;
+            border-right: 1px solid rgba(255,255,255,0.08);
+        }
+        .orders-table td {
+            padding: 12px 10px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            vertical-align: middle;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .orders-table th:last-child,
+        .orders-table td:last-child { border-right: none; }
+        .orders-table tr:hover td { background: rgba(196,160,111,0.06); }
+        .orders-table .num { text-align: center; width: 52px; }
+        .orders-table .money-cell { color: #d7b989; font-weight: 800; }
+        .orders-table-actions { display: flex; gap: 8px; justify-content: center; }
+        .orders-table-actions button { width: 36px; height: 36px; padding: 0; border-radius: 50%; }
+        select option { background: #111820; color: var(--text); }
+
+
+
+        /* v8 layout aligned with dark reference */
+        .app-shell {
+            max-width: 1180px;
+            padding: 20px;
+            border-radius: 18px;
+        }
+        .app-header { margin-bottom: 18px; }
+        .logo img { width: 176px; border-radius: 16px; }
+        .app-title h1 { font-size: clamp(2.3rem, 4.2vw, 3.7rem); }
+        .app-title p { font-size: 1.08rem; }
+        .workspace-top {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-bottom: 20px;
+        }
+        .toolbar-panel { min-width: 0; }
+        .panel-label {
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            font-size: .76rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        .tool-row { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tool-button {
+            min-width: 96px;
+            height: 78px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: linear-gradient(180deg, rgba(24,34,43,.95), rgba(14,20,26,.95));
+            border: 1px solid rgba(255,255,255,.09);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            font-size: 1.25rem;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 8px 20px rgba(0,0,0,.18);
+        }
+        .tool-button span { font-size: .82rem; }
+        .tool-button.active, .tool-button:hover {
+            background: linear-gradient(135deg, #b99a70, #6d543a);
+            border-color: rgba(226,196,152,.72);
+            color: #fff;
+        }
+        .main-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 390px;
+            gap: 24px;
+            align-items: start;
+        }
+        .canvas-panel { min-width: 0; }
+        .canvas-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .grid-size-label {
+            color: var(--muted);
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: .03em;
+            font-size: .84rem;
+        }
+        .grid-size-label strong { color: var(--accent); margin-left: 6px; }
+        .zoom-control.compact {
+            min-width: 340px;
+            max-width: 430px;
+            flex: 1;
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+        .stage-grid-wrap {
+            border-radius: 8px;
+            padding: 0;
+            background: #111820;
+        }
+        .stage-grid { margin: 0; }
+        .stage-cell { border-color: rgba(255,255,255,.09); }
+        .side-panel { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .side-card {
+            background: linear-gradient(180deg, rgba(22,31,39,.96), rgba(14,20,26,.98));
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 14px 34px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.035);
+        }
+        .side-card h3,
+        .orders-section h3 {
+            margin: 0 0 14px 0;
+            padding: 0;
+            border-left: none;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: .93rem;
+            letter-spacing: .04em;
+        }
+        .result-side-card { padding-bottom: 0; }
+        .result-card { margin: 0 -16px 0; border-left: 0; border-right: 0; border-radius: 0 0 10px 10px; border-bottom: 0; }
+        .result-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 0;
+            align-items: stretch;
+        }
+        .result-grid div {
+            display: flex;
+            align-items: center;
+            min-height: 42px;
+            padding: 9px 16px;
+            background: transparent !important;
+            border-bottom: 1px solid rgba(255,255,255,.085);
+            font-size: .82rem;
+            line-height: 1.25;
+        }
+        .result-grid div:nth-child(odd) {
+            color: var(--muted);
+            font-weight: 650;
+            border-right: 1px solid rgba(255,255,255,.055);
+        }
+        .result-grid div:nth-child(even) {
+            justify-content: flex-end;
+            color: var(--accent);
+            font-size: .96rem;
+            font-weight: 800;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .result-grid div:nth-last-child(1), .result-grid div:nth-last-child(2) {
+            border-bottom: none;
+            min-height: 48px;
+        }
+        .result-grid div:nth-last-child(2),
+        .result-grid div:nth-last-child(1) { background: rgba(196,160,111,.055) !important; }
+        .quick-client-row { display: grid; grid-template-columns: 1fr 48px; gap: 8px; margin-top: 8px; }
+        .quick-client-row button { padding: 0; border-radius: 12px; }
+        .compact-row { gap: 10px; margin-bottom: 12px; }
+        .template-size-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .params-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+        .params-grid .field { min-width: 0; }
+        .template-field { grid-column: 1 / -1; }
+        .module-size-note {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0 14px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,.085);
+            color: var(--muted);
+            font-size: .86rem;
+        }
+        .module-size-note strong { color: var(--accent); font-size: .98rem; white-space: nowrap; }
+        .canvas-meta-row { margin-top: 2px; }
+        .wide-button { width: 100%; margin-bottom: 10px; border-radius: 8px; }
+        .orders-section { margin-top: 18px; }
+        .orders-table-wrap { border-radius: 8px; }
+        .orders-table th { text-align: center; }
+        .orders-table td { text-align: center; }
+        .orders-table td:nth-child(2), .orders-table td:nth-child(3) { text-align: left; }
+        .orders-table-actions button { font-size: 1rem; }
+        .pdf-order-button { color: var(--accent); }
+        @media (max-width: 960px) {
+            .workspace-top { grid-template-columns: 1fr; gap: 16px; }
+            .main-layout { grid-template-columns: 1fr; }
+            .side-panel { grid-row: auto; }
+            .logo img { width: 132px; }
+        }
+
+        @media (max-width: 560px) {
+            button { width: 100%; }
+            .action-group button { width: auto; flex: 1; min-width: 135px; }
+            .grid-toolbar button { width: auto; flex: 1; min-width: 135px; }
+            .params-grid { grid-template-columns: 1fr; }
+            .template-field { grid-column: auto; }
+            .stage-grid { --cell-size: 24px; gap: 0; }
+            .result-grid div { padding: 10px 12px; font-size: 0.9rem; }
+            .order-card { flex-direction: column; align-items: flex-start; }
+            .delete-order { align-self: flex-end; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container app-shell">
+    <div class="app-header">
+        <div class="logo">
+            <img src="icon-192.png" alt="FEG Stage PRO">
+        </div>
+        <div class="app-title">
+            <h1><span>FEG</span> Stage PRO</h1>
+            <p>Калькулятор сценических модулей</p>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <main class="canvas-panel">
+            <div class="canvas-meta-row">
+                <div class="grid-size-label">Размер сетки: <strong>20 × 20</strong></div>
+                <div class="zoom-control compact">
+                    <input id="gridZoom" type="range" min="18" max="46" value="30" step="1" aria-label="Масштаб сетки">
+                    <output id="gridZoomValue">30 px</output>
+                </div>
+            </div>
+
+            <div class="stage-grid-wrap">
+                <div id="stageGrid" class="stage-grid" aria-label="Редактор конфигурации сцены 20 на 20"></div>
+            </div>
+
+            <div class="grid-caption">
+                <span>ⓘ Рисуйте мышкой или пальцем. Отдельные группы модулей считаются как отдельные конструкции.</span>
+                <span id="selectedCount">Выбрано модулей: 0</span>
+            </div>
+        </main>
+
+        <aside class="side-panel">
+            <section class="side-card result-side-card">
+                <h3>Результаты расчёта</h3>
+                <div id="result" class="result-card"></div>
+            </section>
+
+            <section class="side-card">
+                <h3>Параметры проекта</h3>
+                <div class="field">
+                    <label>Название проекта</label>
+                    <input id="projectName" placeholder="Фестиваль, концерт, шоу">
+                </div>
+                <div class="field">
+                    <label>Клиент</label>
+                    <select id="clientSelect"></select>
+                </div>
+                <div class="quick-client-row">
+                    <input id="clientName" type="text" placeholder="Новый клиент">
+                    <button onclick="addClient()" class="btn-secondary">+</button>
+                </div>
+            </section>
+
+            <section class="side-card module-params-card">
+                <h3>Параметры модуля</h3>
+                <div class="module-size-note">
+                    <span>Размер настила / листа</span>
+                    <strong>1.2 × 1.2 м</strong>
+                </div>
+                <div class="params-grid">
+                    <div class="field small">
+                        <label>Цена за модуль</label>
+                        <input id="priceModule" type="number" value="850" step="50">
+                    </div>
+                    <div class="field small">
+                        <label>Монтаж</label>
+                        <input id="install" type="number" value="3500" step="500">
+                    </div>
+                    <div class="field small template-field">
+                        <label>Шаблон Ш×Г</label>
+                        <div class="template-size-row">
+                            <input id="width" type="number" value="4" min="1" max="20" step="1" aria-label="Ширина шаблона">
+                            <input id="depth" type="number" value="3" min="1" max="20" step="1" aria-label="Глубина шаблона">
+                        </div>
+                    </div>
+                </div>
+                <div class="hint">Габариты сцены и площадь настила считаются автоматически по выбранной форме.</div>
+            </section>
+
+            <section class="side-card action-side-card">
+                <h3>Действия</h3>
+                <button onclick="saveOrder()" class="btn-success wide-button">▱ Сохранить заказ</button>
+                <button onclick="openPdfPreview()" class="btn-secondary wide-button">▣ Технический PDF / отправить</button>
+                <button id="installBtn" class="btn-primary wide-button" style="display:none">Установить приложение</button>
+            </section>
+        </aside>
+    </div>
+
+    <section class="orders-section">
+        <h3>Сохранённые заказы</h3>
+        <div id="orders" class="orders-list"></div>
+    </section>
+</div>
+
+<div id="pdfContent" style="display:none;">
+    <h2>ТЕХНИЧЕСКИЙ ЛИСТ СБОРКИ СЦЕНЫ</h2>
+    <div id="pdfData"></div>
+    <p style="margin-top: 22px; font-size: 11px; color: #666;">FEG Stage PRO — технический лист для склада и площадки</p>
+</div>
+
+<div id="pdfModal" class="modal-backdrop" aria-hidden="true">
+    <div class="pdf-modal" role="dialog" aria-modal="true" aria-label="Предпросмотр PDF">
+        <div class="pdf-modal-header">
+            <div class="pdf-modal-title">Предпросмотр технического листа</div>
+            <button type="button" class="close-modal" onclick="closePdfPreview()" aria-label="Закрыть">×</button>
+        </div>
+        <div class="pdf-modal-actions">
+            <button type="button" class="btn-secondary" onclick="downloadPreparedPdf()">Скачать PDF</button>
+            <button type="button" class="btn-primary" onclick="sharePreparedPdf()">Отправить / поделиться</button>
+            <button type="button" class="btn-secondary" onclick="emailPreparedPdf()">Email</button>
+        </div>
+        <iframe id="pdfPreviewFrame" class="pdf-preview-frame" title="Предпросмотр PDF"></iframe>
+    </div>
+</div>
+
+<script>
+    const GRID_SIZE = 20;
+    const MODULE_WIDTH_M = 1.2;
+    const MODULE_DEPTH_M = 1.2;
+    const MODULE_SIZE_LABEL = '1.2×1.2 м';
+    let selectedModules = new Set();
+    let lastResult = null;
+
+    const clientNameInput = document.getElementById('clientName');
+    const clientSelect = document.getElementById('clientSelect');
+    const projectNameInput = document.getElementById('projectName');
+    const widthInput = document.getElementById('width');
+    const depthInput = document.getElementById('depth');
+    const priceModuleInput = document.getElementById('priceModule');
+    const installInput = document.getElementById('install');
+    const resultDiv = document.getElementById('result');
+    const ordersDiv = document.getElementById('orders');
+    const pdfDataDiv = document.getElementById('pdfData');
+    const stageGrid = document.getElementById('stageGrid');
+    const selectedCount = document.getElementById('selectedCount');
+    const pdfModal = document.getElementById('pdfModal');
+    const pdfPreviewFrame = document.getElementById('pdfPreviewFrame');
+    const gridZoom = document.getElementById('gridZoom');
+    const gridZoomValue = document.getElementById('gridZoomValue');
+
+    let isDrawing = false;
+    let drawMode = 'add';
+    let lastDrawnCell = null;
+    let preparedPdfBlob = null;
+    let preparedPdfUrl = null;
+    let preparedPdfName = 'smeta.pdf';
+
+    function moduleKey(x, y) {
+        return `${x},${y}`;
+    }
+
+    function parseModuleKey(key) {
+        const [x, y] = key.split(',').map(Number);
+        return { x, y };
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>"']/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            if (m === '"') return '&quot;';
+            if (m === "'") return '&#039;';
+            return m;
+        });
+    }
+
+    function money(value) {
+        return Number(value || 0).toLocaleString('ru-RU');
+    }
+
+    function metric(value) {
+        const rounded = Math.round((Number(value) || 0) * 100) / 100;
+        return rounded.toLocaleString('ru-RU', { maximumFractionDigits: 2 });
+    }
+
+    function setGridZoom(value) {
+        const size = Math.max(18, Math.min(46, Number(value) || 30));
+        stageGrid.style.setProperty('--cell-size', `${size}px`);
+        if (gridZoomValue) gridZoomValue.textContent = `${size} px`;
+    }
+
+    function buildStageGrid() {
+        stageGrid.innerHTML = '';
+        for (let y = 0; y < GRID_SIZE; y++) {
+            for (let x = 0; x < GRID_SIZE; x++) {
+                const cell = document.createElement('button');
+                cell.type = 'button';
+                cell.className = 'stage-cell';
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                cell.title = `Модуль ${x + 1}:${y + 1}`;
+                cell.setAttribute('aria-label', `Модуль ${x + 1}:${y + 1}`);
+                if (y === GRID_SIZE - 1) cell.classList.add('front-row');
+                cell.addEventListener('pointerdown', handleCellPointerDown);
+                cell.addEventListener('pointerenter', handleCellPointerEnter);
+                cell.addEventListener('pointerup', stopDrawing);
+                cell.addEventListener('pointercancel', stopDrawing);
+                stageGrid.appendChild(cell);
+            }
+        }
+        renderStageGrid();
+    }
+
+    function setModuleState(x, y, shouldAdd) {
+        const key = moduleKey(x, y);
+        if (shouldAdd) selectedModules.add(key);
+        else selectedModules.delete(key);
+    }
+
+    function handleCellPointerDown(event) {
+        event.preventDefault();
+        const cell = event.currentTarget;
+        const x = Number(cell.dataset.x);
+        const y = Number(cell.dataset.y);
+        const key = moduleKey(x, y);
+        drawMode = selectedModules.has(key) ? 'remove' : 'add';
+        isDrawing = true;
+        lastDrawnCell = null;
+        applyDrawToCell(cell);
+    }
+
+    function handleCellPointerEnter(event) {
+        if (!isDrawing) return;
+        event.preventDefault();
+        applyDrawToCell(event.currentTarget);
+    }
+
+    function applyDrawToCell(cell) {
+        const x = Number(cell.dataset.x);
+        const y = Number(cell.dataset.y);
+        const key = moduleKey(x, y);
+        if (lastDrawnCell === key) return;
+        lastDrawnCell = key;
+        setModuleState(x, y, drawMode === 'add');
+        renderStageGrid();
+        calc(false);
+    }
+
+    function stopDrawing() {
+        isDrawing = false;
+        lastDrawnCell = null;
+    }
+
+    function handleGridPointerMove(event) {
+        if (!isDrawing) return;
+        event.preventDefault();
+        const element = document.elementFromPoint(event.clientX, event.clientY);
+        const cell = element && element.closest ? element.closest('.stage-cell') : null;
+        if (cell && stageGrid.contains(cell)) applyDrawToCell(cell);
+    }
+
+    stageGrid.addEventListener('pointermove', handleGridPointerMove);
+    window.addEventListener('pointerup', stopDrawing);
+    window.addEventListener('pointercancel', stopDrawing);
+
+    function renderStageGrid() {
+        document.querySelectorAll('.stage-cell').forEach(cell => {
+            const key = moduleKey(Number(cell.dataset.x), Number(cell.dataset.y));
+            cell.classList.toggle('active', selectedModules.has(key));
+        });
+        selectedCount.textContent = `Выбрано модулей: ${selectedModules.size}`;
+    }
+
+    function normalizeSelectedModules(modules) {
+        if (!modules.length) return [];
+        const minX = Math.min(...modules.map(m => m.x));
+        const minY = Math.min(...modules.map(m => m.y));
+        return modules.map(m => ({ x: m.x - minX, y: m.y - minY }));
+    }
+
+    function centerModulesInGrid(modules) {
+        if (!modules.length) return [];
+        const width = Math.max(...modules.map(m => m.x)) + 1;
+        const depth = Math.max(...modules.map(m => m.y)) + 1;
+        const offsetX = Math.floor((GRID_SIZE - width) / 2);
+        const offsetY = Math.floor((GRID_SIZE - depth) / 2);
+        return modules.map(m => ({ x: m.x + offsetX, y: m.y + offsetY }))
+            .filter(m => m.x >= 0 && m.x < GRID_SIZE && m.y >= 0 && m.y < GRID_SIZE);
+    }
+
+    function mirrorStage() {
+        const modules = getSelectedModuleList();
+        if (!modules.length) return;
+        const minX = Math.min(...modules.map(m => m.x));
+        const maxX = Math.max(...modules.map(m => m.x));
+        selectedModules = new Set(modules.map(m => moduleKey(maxX - (m.x - minX), m.y)));
+        renderStageGrid();
+        calc(false);
+    }
+
+    function rotateStage() {
+        const modules = normalizeSelectedModules(getSelectedModuleList());
+        if (!modules.length) return;
+        const maxY = Math.max(...modules.map(m => m.y));
+        const rotated = modules.map(m => ({ x: maxY - m.y, y: m.x }));
+        selectedModules = new Set(centerModulesInGrid(rotated).map(m => moduleKey(m.x, m.y)));
+        renderStageGrid();
+        calc(false);
+    }
+
+    function clearStageGrid() {
+        selectedModules.clear();
+        renderStageGrid();
+        calc(false);
+    }
+
+    function applyRectangle() {
+        const w = parseInt(widthInput.value);
+        const d = parseInt(depthInput.value);
+        if (isNaN(w) || isNaN(d) || w <= 0 || d <= 0 || w > GRID_SIZE || d > GRID_SIZE) {
+            alert(`Укажите ширину и глубину от 1 до ${GRID_SIZE}`);
+            return;
+        }
+        selectedModules.clear();
+        const startX = Math.floor((GRID_SIZE - w) / 2);
+        const startY = GRID_SIZE - d;
+        for (let y = startY; y < startY + d; y++) {
+            for (let x = startX; x < startX + w; x++) {
+                selectedModules.add(moduleKey(x, y));
+            }
+        }
+        renderStageGrid();
+        calc(false);
+    }
+
+    function getSelectedModuleList() {
+        return Array.from(selectedModules).map(parseModuleKey);
+    }
+
+    function canonicalEdge(a, b) {
+        const first = `${a.x},${a.y}`;
+        const second = `${b.x},${b.y}`;
+        return first < second ? `${first}-${second}` : `${second}-${first}`;
+    }
+
+    function calculateGeometry(modules) {
+        const vertices = new Set();
+        const edges = new Set();
+
+        modules.forEach(({ x, y }) => {
+            vertices.add(`${x},${y}`);
+            vertices.add(`${x + 1},${y}`);
+            vertices.add(`${x},${y + 1}`);
+            vertices.add(`${x + 1},${y + 1}`);
+
+            edges.add(canonicalEdge({ x, y }, { x: x + 1, y }));
+            edges.add(canonicalEdge({ x, y: y + 1 }, { x: x + 1, y: y + 1 }));
+            edges.add(canonicalEdge({ x, y }, { x, y: y + 1 }));
+            edges.add(canonicalEdge({ x: x + 1, y }, { x: x + 1, y: y + 1 }));
+        });
+
+        return {
+            sheets: modules.length,
+            columns: vertices.size,
+            frames: edges.size
+        };
+    }
+
+    function calculateConnectedComponents(modules) {
+        const keys = new Set(modules.map(m => moduleKey(m.x, m.y)));
+        const visited = new Set();
+        let components = 0;
+        const directions = [
+            [-1,-1], [0,-1], [1,-1],
+            [-1, 0],         [1, 0],
+            [-1, 1], [0, 1], [1, 1]
+        ];
+
+        modules.forEach(({ x, y }) => {
+            const start = moduleKey(x, y);
+            if (visited.has(start)) return;
+            components += 1;
+            const stack = [start];
+            visited.add(start);
+            while (stack.length) {
+                const current = stack.pop();
+                const { x: cx, y: cy } = parseModuleKey(current);
+                directions.forEach(([dx, dy]) => {
+                    const next = moduleKey(cx + dx, cy + dy);
+                    if (keys.has(next) && !visited.has(next)) {
+                        visited.add(next);
+                        stack.push(next);
+                    }
+                });
+            }
+        });
+        return components;
+    }
+
+    function getDetachedNotice(components) {
+        if (components <= 1) return 'Единая конструкция';
+        return `${components} отдельные конструкции`;
+    }
+
+    function getStageBounds(modules) {
+        if (!modules.length) return { width: 0, depth: 0 };
+        const xs = modules.map(m => m.x);
+        const ys = modules.map(m => m.y);
+        return {
+            width: Math.max(...xs) - Math.min(...xs) + 1,
+            depth: Math.max(...ys) - Math.min(...ys) + 1
+        };
+    }
+
+    function buildShapeText(modules) {
+        if (!modules.length) return 'Нет модулей';
+        const keys = new Set(modules.map(m => moduleKey(m.x, m.y)));
+        const xs = modules.map(m => m.x);
+        const ys = modules.map(m => m.y);
+        const minX = Math.min(...xs);
+        const maxX = Math.max(...xs);
+        const minY = Math.min(...ys);
+        const maxY = Math.max(...ys);
+        let rows = [];
+        for (let y = minY; y <= maxY; y++) {
+            let row = '';
+            for (let x = minX; x <= maxX; x++) {
+                row += keys.has(moduleKey(x, y)) ? '■' : '□';
+            }
+            rows.push(row);
+        }
+        return rows.join('<br>');
+    }
+
+    function addClient() {
+        const name = clientNameInput.value.trim();
+        if (!name) {
+            alert('Введите имя клиента');
+            return;
+        }
+        let clients = JSON.parse(localStorage.getItem('clients') || '[]');
+        const exists = clients.some(c => c.trim().toLowerCase() === name.toLowerCase());
+        if (exists) {
+            alert('Такой клиент уже есть в списке');
+            return;
+        }
+        clients.push(name);
+        localStorage.setItem('clients', JSON.stringify(clients));
+        renderClients();
+        clientNameInput.value = '';
+        clientSelect.value = name;
+    }
+
+    function renderClients() {
+        const clients = JSON.parse(localStorage.getItem('clients') || '[]');
+        clientSelect.innerHTML = '<option value="">— Выберите клиента —</option>';
+        clients.forEach(c => {
+            clientSelect.innerHTML += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
+        });
+        if (clients.length === 0) {
+            clientSelect.innerHTML = '<option value="">Нет клиентов, добавьте</option>';
+        }
+    }
+
+    function calc(showAlerts = true) {
+        const modulesList = getSelectedModuleList();
+        const price = parseFloat(priceModuleInput.value);
+        let installCost = parseFloat(installInput.value);
+
+        if (modulesList.length === 0) {
+            lastResult = null;
+            resultDiv.innerHTML = '<div class="result-grid"><div>Конфигурация</div><div>Выберите модули на сетке</div></div>';
+            updatePdfContent();
+            return;
+        }
+        if (isNaN(price) || price < 0) {
+            if (showAlerts) alert('Укажите корректную цену за модуль');
+            return;
+        }
+        if (isNaN(installCost) || installCost < 0) installCost = 0;
+
+        const geometry = calculateGeometry(modulesList);
+        const components = calculateConnectedComponents(modulesList);
+        const bounds = getStageBounds(modulesList);
+        const modulesCost = geometry.sheets * price;
+        const total = modulesCost + installCost;
+
+        lastResult = {
+            w: bounds.width,
+            d: bounds.depth,
+            modules: geometry.sheets,
+            sheets: geometry.sheets,
+            columns: geometry.columns,
+            frames: geometry.frames,
+            components,
+            modulesCost,
+            installCost,
+            total,
+            priceModule: price,
+            shape: Array.from(selectedModules),
+            shapeText: buildShapeText(modulesList),
+            widthMeters: bounds.width * MODULE_WIDTH_M,
+            depthMeters: bounds.depth * MODULE_DEPTH_M,
+            areaMeters: geometry.sheets * MODULE_WIDTH_M * MODULE_DEPTH_M
+        };
+
+        resultDiv.innerHTML = `
+            <div class="result-grid">
+                <div>Габариты сцены</div><div>${metric(bounds.width * MODULE_WIDTH_M)} × ${metric(bounds.depth * MODULE_DEPTH_M)} м</div>
+                <div>Габаритная зона по сетке</div><div>${bounds.width} × ${bounds.depth} мод.</div>
+                <div>Площадь настила</div><div>${metric(geometry.sheets * MODULE_WIDTH_M * MODULE_DEPTH_M)} м²</div>
+                <div>Листы настила</div><div>${geometry.sheets} шт</div>
+                <div>Столбы-опоры</div><div>${geometry.columns} шт</div>
+                <div>Перекладины / рамки</div><div>${geometry.frames} шт</div>
+                <div>Связность</div><div>${getDetachedNotice(components)}</div>
+                <div>Стоимость модулей</div><div>${money(modulesCost)} ₽</div>
+                <div>Монтаж</div><div>${money(installCost)} ₽</div>
+                <div><b>ИТОГО</b></div><div><b>${money(total)} ₽</b></div>
+            </div>
+        `;
+
+        updatePdfContent();
+    }
+
+    function createPdfMiniGrid() {
+        const keys = new Set(selectedModules);
+        let html = '<div class="pdf-mini-grid">';
+        for (let y = 0; y < GRID_SIZE; y++) {
+            for (let x = 0; x < GRID_SIZE; x++) {
+                html += `<div class="pdf-mini-cell ${keys.has(moduleKey(x, y)) ? 'active' : ''}"></div>`;
+            }
+        }
+        html += '</div>';
+        return html;
+    }
+
+    function updatePdfContent() {
+        if (!lastResult) {
+            pdfDataDiv.innerHTML = '<p>Нет расчёта. Выберите модули на сетке.</p>';
+            return;
+        }
+        const clientName = clientSelect.value || 'Клиент не выбран';
+        const project = projectNameInput.value.trim() || 'Без названия';
+        const { w, d, modules, sheets, columns, frames, components, widthMeters, depthMeters, areaMeters } = lastResult;
+        const now = new Date();
+        const dateText = now.toLocaleDateString('ru-RU');
+        const timeText = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        const moduleSize = MODULE_SIZE_LABEL;
+
+        pdfDataDiv.innerHTML = `
+            <div class="tech-pdf">
+                <div class="tech-top">
+                    <div class="tech-box">
+                        <div><strong>Проект:</strong> ${escapeHtml(project)}</div>
+                        <div><strong>Клиент:</strong> ${escapeHtml(clientName)}</div>
+                        <div><strong>Дата/время:</strong> ${dateText} ${timeText}</div>
+                    </div>
+                    <div class="tech-box">
+                        <div><strong>Документ:</strong> технический лист для склада и площадки</div>
+                        <div><strong>Размер модуля:</strong> ${moduleSize}</div>
+                        <div><strong>Габариты сцены:</strong> ${metric(widthMeters)} × ${metric(depthMeters)} м</div>
+                        <div><strong>Габаритная зона по сетке:</strong> ${w} × ${d} мод.</div>
+                    </div>
+                </div>
+
+                <div class="section-title">1. Схема конфигурации сцены</div>
+                <div class="scheme-row">
+                    <div>
+                        <div style="font-size:12px; margin-bottom:6px;"><strong>Сетка 20×20.</strong> Передний ряд — нижняя часть схемы.</div>
+                        ${createPdfMiniGrid()}
+                    </div>
+                    <div class="notes">
+                        <table>
+                            <tr><th>Параметр</th><th class="qty">Значение</th></tr>
+                            <tr><td>Листы настила / модули</td><td class="qty">${sheets}</td></tr>
+                            <tr><td>Столбы / опоры</td><td class="qty">${columns}</td></tr>
+                            <tr><td>Перекладины / рамки</td><td class="qty">${frames}</td></tr>
+                            <tr><td>Отдельные конструкции</td><td class="qty">${components}</td></tr>
+                            <tr><td>Размер листа / модуля</td><td class="qty">${moduleSize}</td></tr>
+                            <tr><td>Габариты сцены</td><td class="qty">${metric(widthMeters)}×${metric(depthMeters)} м</td></tr>
+                            <tr><td>Габаритная зона</td><td class="qty">${w}×${d} мод.</td></tr>
+                            <tr><td>Площадь настила</td><td class="qty">${metric(areaMeters)} м²</td></tr>
+                        </table>
+                        <p style="margin-top:10px;"><strong>Важно:</strong> отдельные группы модулей считать отдельными конструкциями при погрузке и сборке.</p>
+                    </div>
+                </div>
+
+                <div class="section-title">2. Комплектация для погрузки</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:38px; text-align:center;">№</th>
+                            <th>Наименование</th>
+                            <th style="width:120px;">Примечание</th>
+                            <th class="qty">Кол-во</th>
+                            <th style="width:70px; text-align:center;">Ед.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="text-align:center;">1</td>
+                            <td>Лист настила / сценический модуль, ламинированное шершавое ДСП</td>
+                            <td>${moduleSize}</td>
+                            <td class="qty">${sheets}</td>
+                            <td style="text-align:center;">шт</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">2</td>
+                            <td>Столб / опора сцены</td>
+                            <td>по уникальным узлам</td>
+                            <td class="qty">${columns}</td>
+                            <td style="text-align:center;">шт</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">3</td>
+                            <td>Перекладина / рамка из квадратного профиля</td>
+                            <td>по уникальным сторонам</td>
+                            <td class="qty">${frames}</td>
+                            <td style="text-align:center;">шт</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="section-title">3. Инструкции для сборки</div>
+                <div class="notes">
+                    <p>1. Разложить модули по схеме. Нижняя часть схемы соответствует переднему краю сцены.</p>
+                    <p>2. Столбы устанавливать в каждом уникальном углу модуля. Если модули соприкасаются углом, используется общий столб.</p>
+                    <p>3. Перекладины / рамки ставить по уникальным сторонам модулей. Общая сторона соседних модулей считается один раз.</p>
+                    <p>4. Если в схеме есть отдельно стоящие группы модулей, собирать и маркировать их как отдельные конструкции: <strong>${components} шт</strong>.</p>
+                </div>
+
+                <div class="signature-row">
+                    <div class="sign-line">Комплектацию выдал / склад</div>
+                    <div class="sign-line">Принял / старший техник</div>
+                </div>
+            </div>
+        `;
+    }
+
+    function saveOrder() {
+        if (!lastResult) {
+            alert('Сначала выберите модули на сетке.');
+            return;
+        }
+        const client = clientSelect.value;
+        if (!client) {
+            alert('Выберите или добавьте клиентa перед сохранением.');
+            return;
+        }
+        const project = projectNameInput.value.trim();
+        if (!project && !confirm('Название проекта не заполнено. Сохранить заказ без названия?')) return;
+
+        let orders = JSON.parse(localStorage.getItem('orders') || '[]');
+        const newOrder = {
+            id: Date.now(),
+            client,
+            name: project || 'Без названия',
+            w: lastResult.w,
+            d: lastResult.d,
+            modules: lastResult.modules,
+            sheets: lastResult.sheets,
+            columns: lastResult.columns,
+            frames: lastResult.frames,
+            components: lastResult.components,
+            modulesCost: lastResult.modulesCost,
+            installCost: lastResult.installCost,
+            total: lastResult.total,
+            priceModule: lastResult.priceModule,
+            shape: lastResult.shape,
+            widthMeters: lastResult.widthMeters,
+            depthMeters: lastResult.depthMeters,
+            areaMeters: lastResult.areaMeters,
+            date: new Date().toISOString()
+        };
+        orders.unshift(newOrder);
+        if (orders.length > 100) orders = orders.slice(0, 100);
+        localStorage.setItem('orders', JSON.stringify(orders));
+        renderOrders();
+        showToast('Заказ сохранён!');
+    }
+
+    function showToast(text) {
+        const toastMsg = document.createElement('div');
+        toastMsg.textContent = text;
+        toastMsg.style.position = 'fixed';
+        toastMsg.style.bottom = '20px';
+        toastMsg.style.left = '50%';
+        toastMsg.style.transform = 'translateX(-50%)';
+        toastMsg.style.backgroundColor = '#c4a06f';
+        toastMsg.style.color = '#111820';
+        toastMsg.style.padding = '10px 20px';
+        toastMsg.style.borderRadius = '60px';
+        toastMsg.style.fontWeight = 'bold';
+        toastMsg.style.zIndex = '999';
+        document.body.appendChild(toastMsg);
+        setTimeout(() => toastMsg.remove(), 2000);
+    }
+
+    function renderOrders() {
+        const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+        if (!ordersDiv) return;
+        if (orders.length === 0) {
+            ordersDiv.innerHTML = '<div style="background:#10161d; border:1px solid #2b3742; padding:20px; border-radius:22px; text-align:center; color:#a6b0bb;">Нет сохранённых заказов. Рассчитайте и сохраните.</div>';
+            return;
+        }
+        const rows = orders.map((order, idx) => {
+            const orderId = order.id || idx;
+            return `
+                <tr>
+                    <td class="num">${idx + 1}</td>
+                    <td title="${escapeHtml(order.client)}"><strong>${escapeHtml(order.client)}</strong></td>
+                    <td title="${escapeHtml(order.name)}">${escapeHtml(order.name)}</td>
+                    <td>${new Date(order.date).toLocaleDateString('ru-RU')}</td>
+                    <td class="num">${order.modules}</td>
+                    <td class="num">${order.columns}</td>
+                    <td class="num">${order.frames}</td>
+                    <td class="num">${order.components || 1}</td>
+                    <td class="money-cell">${money(order.total)} ₽</td>
+                    <td>
+                        <div class="orders-table-actions">
+                            <button class="pdf-order-button" data-id="${orderId}" title="Открыть PDF заказа">▣</button>
+                            <button class="delete-order" data-id="${orderId}" title="Удалить заказ">🗑</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        ordersDiv.innerHTML = `
+            <div class="orders-table-wrap">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th class="num">№</th>
+                            <th>Клиент</th>
+                            <th>Проект</th>
+                            <th>Дата</th>
+                            <th class="num">Листы</th>
+                            <th class="num">Столбы</th>
+                            <th class="num">Рамки</th>
+                            <th class="num">Констр.</th>
+                            <th>Стоимость</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `;
+
+        document.querySelectorAll('.pdf-order-button').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const idRaw = btn.getAttribute('data-id');
+                const ordersArr = JSON.parse(localStorage.getItem('orders') || '[]');
+                let order = ordersArr.find(o => String(o.id || o._id) === String(idRaw));
+                if (!order) {
+                    const idx = parseInt(idRaw);
+                    if (!isNaN(idx)) order = ordersArr[idx];
+                }
+                if (!order) return;
+                openSavedOrderPdf(order);
+            });
+        });
+
+        document.querySelectorAll('.delete-order').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!confirm('Удалить заказ?')) return;
+                const idRaw = btn.getAttribute('data-id');
+                let ordersArr = JSON.parse(localStorage.getItem('orders') || '[]');
+                const filtered = ordersArr.filter(o => (o.id || o._id) != idRaw);
+                if (filtered.length === ordersArr.length) {
+                    const idxToDel = parseInt(idRaw);
+                    if (!isNaN(idxToDel) && ordersArr[idxToDel]) ordersArr.splice(idxToDel, 1);
+                } else {
+                    ordersArr = filtered;
+                }
+                localStorage.setItem('orders', JSON.stringify(ordersArr));
+                renderOrders();
+            });
+        });
+    }
+
+    function openSavedOrderPdf(order) {
+        if (!order) return;
+        if (Array.isArray(order.shape)) {
+            selectedModules = new Set(order.shape);
+            renderStageGrid();
+        }
+        if (order.client) {
+            let clients = JSON.parse(localStorage.getItem('clients') || '[]');
+            if (!clients.some(c => c.trim().toLowerCase() === String(order.client).trim().toLowerCase())) {
+                clients.push(order.client);
+                localStorage.setItem('clients', JSON.stringify(clients));
+                renderClients();
+            }
+            clientSelect.value = order.client;
+        }
+        projectNameInput.value = order.name || '';
+        if (order.priceModule) priceModuleInput.value = order.priceModule;
+        if (order.installCost !== undefined) installInput.value = order.installCost;
+        calc(false);
+        openPdfPreview();
+    }
+
+    async function createPdfBlob() {
+        if (!lastResult) {
+            alert('Нет активного расчёта. Выберите модули на сетке перед созданием PDF.');
+            return null;
+        }
+        updatePdfContent();
+
+        const pdfContainer = document.getElementById('pdfContent');
+        if (!pdfContainer) return null;
+
+        pdfContainer.style.display = 'block';
+        pdfContainer.style.position = 'absolute';
+        pdfContainer.style.top = '-9999px';
+        pdfContainer.style.left = '0';
+        pdfContainer.style.width = '750px';
+        pdfContainer.style.background = 'white';
+
+        try {
+            const canvas = await html2canvas(pdfContainer, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: false
+            });
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const imgWidth = 210;
+            const pageHeight = 297;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let position = 0;
+            doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            if (imgHeight > pageHeight) {
+                let heightLeft = imgHeight - pageHeight;
+                position = -pageHeight;
+                while (heightLeft > 0) {
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                    position -= pageHeight;
+                }
+            }
+            const safeName = (projectNameInput.value.trim() || 'stage').replace(/[\/:*?"<>|]/g, '_');
+            preparedPdfName = `tech_stage_${safeName}_${Date.now()}.pdf`;
+            return doc.output('blob');
+        } catch (err) {
+            console.error(err);
+            alert('Ошибка при создании PDF: ' + err);
+            return null;
+        } finally {
+            pdfContainer.style.display = 'none';
+            pdfContainer.style.position = '';
+        }
+    }
+
+    async function openPdfPreview() {
+        const blob = await createPdfBlob();
+        if (!blob) return;
+        preparedPdfBlob = blob;
+        if (preparedPdfUrl) URL.revokeObjectURL(preparedPdfUrl);
+        preparedPdfUrl = URL.createObjectURL(blob);
+        pdfPreviewFrame.src = preparedPdfUrl;
+        pdfModal.classList.add('open');
+        pdfModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closePdfPreview() {
+        pdfModal.classList.remove('open');
+        pdfModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function downloadPreparedPdf() {
+        if (!preparedPdfBlob || !preparedPdfUrl) return;
+        const link = document.createElement('a');
+        link.href = preparedPdfUrl;
+        link.download = preparedPdfName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    }
+
+    async function sharePreparedPdf() {
+        if (!preparedPdfBlob) return;
+        const file = new File([preparedPdfBlob], preparedPdfName, { type: 'application/pdf' });
+        const shareData = {
+            title: 'FEG Stage PRO — технический лист',
+            text: 'Технический лист сборки FEG Stage PRO',
+            files: [file]
+        };
+        try {
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share(shareData);
+            } else if (navigator.share) {
+                await navigator.share({ title: shareData.title, text: shareData.text });
+                showToast('Файл можно скачать из предпросмотра и отправить вручную');
+            } else {
+                downloadPreparedPdf();
+                showToast('PDF скачан. Его можно отправить через почту или мессенджер');
+            }
+        } catch (err) {
+            if (err && err.name !== 'AbortError') {
+                console.error(err);
+                showToast('Не удалось открыть отправку. Скачайте PDF вручную');
+            }
+        }
+    }
+
+    function emailPreparedPdf() {
+        const subject = encodeURIComponent('Коммерческое предложение FEG Stage PRO');
+        const body = encodeURIComponent('Здравствуйте!\n\nВо вложении коммерческое предложение. Если файл не прикрепился автоматически, я отправлю PDF отдельным сообщением.\n\n');
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        showToast('Почта открыта. PDF можно приложить из загрузок');
+    }
+
+    if (pdfModal) {
+        pdfModal.addEventListener('click', (event) => {
+            if (event.target === pdfModal) closePdfPreview();
+        });
+    }
+
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closePdfPreview();
+    });
+
+
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (installBtn) installBtn.style.display = 'inline-block';
+    });
+
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            deferredPrompt = null;
+            installBtn.style.display = 'none';
+        });
+    }
+
+    function isIOS() {
+        return /iphone|ipad|ipod/i.test(navigator.userAgent);
+    }
+
+    function showIosHint() {
+        if (isIOS() && !window.navigator.standalone) {
+            const hint = document.createElement('div');
+            hint.innerHTML = '👉 Поделиться → На экран Домой';
+            hint.style.position = 'fixed';
+            hint.style.bottom = '20px';
+            hint.style.left = '50%';
+            hint.style.transform = 'translateX(-50%)';
+            hint.style.background = '#000';
+            hint.style.color = '#fff';
+            hint.style.padding = '10px 16px';
+            hint.style.borderRadius = '20px';
+            hint.style.fontSize = '14px';
+            hint.style.zIndex = '999';
+            document.body.appendChild(hint);
+            setTimeout(() => hint.remove(), 5000);
+        }
+    }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(console.error);
+    }
+
+    function init() {
+        renderClients();
+        buildStageGrid();
+        renderOrders();
+        if (!widthInput.value) widthInput.value = 4;
+        if (!depthInput.value) depthInput.value = 3;
+        if (!priceModuleInput.value) priceModuleInput.value = 850;
+        if (!installInput.value) installInput.value = 3500;
+        if (gridZoom) {
+            setGridZoom(gridZoom.value);
+            gridZoom.addEventListener('input', () => setGridZoom(gridZoom.value));
+        }
+        applyRectangle();
+        priceModuleInput.addEventListener('input', () => calc(false));
+        installInput.addEventListener('input', () => calc(false));
+        widthInput.addEventListener('change', applyRectangle);
+        depthInput.addEventListener('change', applyRectangle);
+        showIosHint();
+    }
+
+    window.addEventListener('load', init);
+</script>
+</body>
+</html>
