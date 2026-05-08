@@ -1,11 +1,16 @@
 {
-  "name": "FEG Stage PRO",
-  "short_name": "FEG Stage",
+  "name": "FEG Stage PRO v3.5.4",
+  "short_name": "FEG PRO 3.5.4",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#080c10",
   "theme_color": "#111820",
   "icons": [
+    {
+      "src": "icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
     {
       "src": "icon-192.png",
       "sizes": "192x192",
@@ -16,5 +21,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "description": "FEG Stage PRO 3.5.4: сцены, фермы, блочный конструктор с CQ2-соединениями, магнитными торцами, визуальными фермами, таблицами нагрузок T29/T39, клиентами, Supabase, PDF/КП и 3D-конструкциями."
 }
