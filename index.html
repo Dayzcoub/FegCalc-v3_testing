@@ -6416,7 +6416,7 @@
 
     /* --- FEG Stage PRO 3.4.7: фикс отрисовки ферм на поле и в PDF --- */
     (function(){
-        const VERSION = '3.4.7';
+        const VERSION = '3.5.48-price-weight-settings-modal';
 
         function f345InstallStyle(){
             if (document.getElementById('feg345TrussFixStyle')) return;
@@ -7282,7 +7282,7 @@
 
     /* --- FEG Stage PRO 3.5: блочный конструктор ферм --- */
     (function(){
-        const VERSION = '3.5.28-u003-all-sides-aligned';
+        const VERSION = '3.5.48-price-weight-settings-modal';
         const STORAGE_KEY = 'fegTrussBlockConstructorDraftV35';
         const DEFAULTS = {
             cols: 24,
@@ -7315,7 +7315,9 @@
             bgMode: 'clean',
             gridDensity: 'medium',
             templateWidthM: 6,
-            templateHeightM: 3
+            templateHeightM: 3,
+            projectName: '',
+            clientName: ''
         };
 
         const SPECS = {
@@ -7448,7 +7450,11 @@
                 if (!item || typeof item !== 'object') return null;
                 const nextType = LEGACY_TYPE_MAP[item.type] || item.type;
                 if (!SPECS[nextType] || nextType === 'pin' || nextType === 'outrigger') return null;
-                return Object.assign({}, item, { type: nextType, r: Number(item.r || 0) });
+                {
+                    const normalized = Object.assign({}, item, { type: nextType, r: Number(item.r || 0) });
+                    if (item.micro && typeof item.micro === 'object') normalized.micro = Object.assign({}, item.micro);
+                    return normalized;
+                }
             }).filter(Boolean);
             if (!SPECS[state.selected] || state.selected === 'pin' || state.selected === 'outrigger') state.selected = LEGACY_TYPE_MAP[state.selected] || DEFAULTS.selected;
             if (!SPECS[state.selected] || state.selected === 'pin' || state.selected === 'outrigger') state.selected = DEFAULTS.selected;
@@ -7476,9 +7482,29 @@
                 .block-truss-header h3 { margin: 0 0 6px; }
                 .block-truss-layout { display:grid; grid-template-columns: minmax(0, 1.35fr) minmax(340px, .65fr); gap:14px; align-items:start; }
                 .block-truss-card { border: 1px solid rgba(255,255,255,.08); border-radius: 18px; padding: 12px; background: rgba(255,255,255,.075); min-width: 0; }
+                .block-project-panel { display:grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(220px, .8fr); gap:10px; margin: 0 0 12px; padding: 12px; border:1px solid rgba(255,255,255,.08); border-radius:18px; background:rgba(255,255,255,.055); }
+                .block-project-panel label { display:block; color:var(--muted); font-size:.72rem; margin-bottom:4px; }
+                .block-project-panel input { width:100%; min-width:0; }
+                .block-clean-note { min-height:40px; display:flex; align-items:center; border-radius:12px; border:1px solid rgba(75,179,120,.26); background:rgba(75,179,120,.12); color:#dfffea; padding:8px 10px; font-weight:800; font-size:.8rem; box-sizing:border-box; line-height:1.2; }
                 .block-truss-controls, .block-truss-prices { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:8px; margin-bottom:10px; }
                 .block-truss-controls label, .block-truss-prices label { display:block; color:var(--muted); font-size:.72rem; margin-bottom:4px; }
                 .block-truss-controls input, .block-truss-controls select, .block-truss-prices input { width:100%; min-width:0; }
+                .block-display-control { position:relative; min-width:0; }
+                .block-display-menu { position:relative; }
+                .block-display-menu summary { min-height:36px; display:flex; align-items:center; justify-content:space-between; gap:10px; border-radius:10px; border:1px solid rgba(196,160,111,.26); background:rgba(196,160,111,.12); color:#f5dfbd; padding:8px 9px; font-weight:900; font-size:.78rem; box-sizing:border-box; cursor:pointer; list-style:none; }
+                .block-display-menu summary::-webkit-details-marker { display:none; }
+                .block-display-menu summary small { color:var(--muted); font-size:.68rem; font-weight:800; white-space:nowrap; }
+                .block-display-menu[open] summary { border-color:rgba(196,160,111,.55); background:rgba(196,160,111,.18); }
+                .block-display-menu-body { position:absolute; z-index:80; top:calc(100% + 7px); left:0; min-width:260px; display:grid; gap:8px; padding:10px; border:1px solid rgba(255,255,255,.12); border-radius:14px; background:rgba(17,21,27,.98); box-shadow:0 16px 38px rgba(0,0,0,.42); }
+                .block-check-row { display:flex !important; align-items:center; gap:8px; margin:0 !important; color:#edf2f8 !important; font-size:.78rem !important; font-weight:800; }
+                .block-check-row input { width:auto !important; min-width:auto !important; }
+                .block-check-row input[type="checkbox"] { width:16px !important; height:16px; accent-color:#c4a06f; cursor:pointer; flex:0 0 auto; }
+                .block-check-group { display:grid; gap:7px; padding:8px; border-radius:12px; background:rgba(255,255,255,.045); }
+                .block-check-group-title { color:var(--muted); font-size:.68rem; font-weight:900; text-transform:uppercase; letter-spacing:.04em; }
+                .block-hidden-select { display:none !important; }
+                body.theme-light .block-display-menu-body { background:#fff7e9; border-color:#d7c9b5; box-shadow:0 16px 38px rgba(53,38,19,.18); }
+                body.theme-light .block-check-row { color:#2d261f !important; }
+                .block-mode-note { min-height:36px; display:flex; align-items:center; border-radius:10px; border:1px solid rgba(196,160,111,.26); background:rgba(196,160,111,.12); color:#f5dfbd; padding:8px 9px; font-weight:800; font-size:.78rem; box-sizing:border-box; }
                 .block-library { display:grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap:7px; margin: 10px 0; }
                 .block-library button { min-height: 62px; padding: 7px 5px; border-radius: 14px; border: 1px solid rgba(255,255,255,.10); background: linear-gradient(180deg, rgba(41,47,56,.95), rgba(24,28,34,.95)); color: #e8edf4; cursor:pointer; display:flex; flex-direction:column; gap:3px; align-items:center; justify-content:center; font-size:.75rem; }
                 .block-library button strong { font-size: 1.05rem; line-height: 1; }
@@ -7504,62 +7530,127 @@
                 .node-tube { stroke:#b9d2e8; stroke-width:12; stroke-linecap:round; stroke-linejoin:round; fill:none; filter: drop-shadow(0 1px 1px rgba(0,0,0,.28)); }
                 .node-tube-corner { stroke:#b9d2e8; stroke-width:13; stroke-linecap:round; stroke-linejoin:round; fill:none; filter: drop-shadow(0 1px 1px rgba(0,0,0,.28)); }
                 .node-truss-rail { stroke:#d6dce4; stroke-width:5; stroke-linecap:round; stroke-linejoin:round; fill:none; filter: drop-shadow(0 1px 1px rgba(0,0,0,.28)); }
+
+                .u003-reference-svg .u003-ref-tube {
+                    fill: #f2f4f7;
+                    stroke: rgba(255,255,255,.35);
+                    stroke-width: 1.2;
+                    stroke-linejoin: round;
+                }
+
                 .node-truss-web { stroke:#f0f4f8; stroke-width:2.4; stroke-linecap:round; opacity:.92; fill:none; }
                 .node-end-plate { stroke:#fafcff; stroke-width:2.8; stroke-linecap:round; opacity:.95; }
                 .node-core { fill:#7f8995; stroke:rgba(255,255,255,.92); stroke-width:4; }
                 .node-port-dot { fill:#cfd6df; stroke:rgba(255,255,255,.85); stroke-width:1.6; }
                 .node-label { fill:#f7f9fb; font-size:18px; font-weight:900; paint-order:stroke; stroke:rgba(0,0,0,.65); stroke-width:4px; stroke-linejoin:round; }
                 .block-item-node { border-radius: 12px; background: transparent; border: 0; color:#fff; }
-                .block-item-base { border-radius: 50%; background: transparent; border: 0; color:#eef2f6; box-shadow:none; }
+
+                .micro-tuner-fab {
+                    position: fixed; right: 18px; bottom: 18px; z-index: 9997;
+                    border: 0; border-radius: 14px; padding: 10px 13px;
+                    font-weight: 900; background: #ffdd69; color: #2f2408;
+                    box-shadow: 0 8px 24px rgba(0,0,0,.35); cursor: pointer;
+                }
+                .micro-tuner {
+                    position: fixed; right: 18px; bottom: 72px;
+                    width: min(390px, calc(100vw - 36px)); max-height: calc(100vh - 100px);
+                    overflow: auto; z-index: 9998; display: none;
+                    background: rgba(15,20,28,.96); color: #f3f6fa;
+                    border: 1px solid rgba(255,255,255,.16); border-radius: 18px;
+                    box-shadow: 0 18px 50px rgba(0,0,0,.45); padding: 14px;
+                }
+                .micro-tuner.open { display:block; }
+                .micro-tuner h4 { margin: 0 0 6px; font-size: 15px; font-weight: 900; }
+                .micro-tuner .sub { margin: 0 0 10px; font-size: 12px; color: rgba(243,246,250,.7); }
+                .micro-row { display:grid; grid-template-columns: 88px 1fr 64px; gap:8px; align-items:center; margin:8px 0; font-size:12px; }
+                .micro-row input[type="range"] { width:100%; }
+                .micro-row input[type="number"], .micro-row input[type="color"], .micro-row input[type="text"] {
+                    width:100%; box-sizing:border-box; border-radius:9px; border:1px solid rgba(255,255,255,.16);
+                    background:rgba(255,255,255,.08); color:#f3f6fa; padding:6px 7px;
+                }
+                .micro-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+                .micro-actions button { border:0; border-radius:11px; padding:8px 10px; font-weight:800; cursor:pointer; background:rgba(255,255,255,.12); color:#f3f6fa; }
+                .micro-actions button.primary { background:#ffdd69; color:#2f2408; }
+                .micro-hint { margin-top:9px; font-size:11px; line-height:1.35; color:rgba(243,246,250,.68); }
+
+.block-item-base { border-radius: 50%; background: transparent; border: 0; color:#eef2f6; box-shadow:none; }
                 .block-item-pin { border-radius: 50%; background: #f1c55e; color:#3b2a12; border: 2px solid rgba(0,0,0,.16); font-size: 14px; }
                 .block-connection-dot { position:absolute; min-width:18px; height:16px; padding:0 4px; border-radius:999px; margin:-8px 0 0 -9px; background:#ffdd69; color:#2e2208; border:1px solid rgba(0,0,0,.25); z-index:5; pointer-events:none; font-size:9px; font-weight:900; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.25); }
                 .block-connection-dot.hot { background:#ff8b69; }
                 .block-caption { display:flex; justify-content:space-between; gap:10px; color:var(--muted); font-size:.78rem; margin-top:8px; }
-                .block-summary-grid { display:grid; grid-template-columns: 1fr auto; border:1px solid var(--line); border-radius:14px; overflow:hidden; margin:10px 0; font-size:.84rem; }
-                .block-summary-grid > div { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); }
-                .block-summary-grid > div:nth-child(odd) { color:var(--muted); background:rgba(255,255,255,.025); }
-                .block-summary-grid > div:nth-child(even) { text-align:right; font-weight:800; }
-                .block-summary-grid > div:nth-last-child(-n+2) { border-bottom:none; }
+                .block-calc-table-wrap { overflow:auto; border:1px solid var(--line); border-radius:14px; margin:10px 0; background:rgba(255,255,255,.025); }
+                .block-calc-table { width:100%; border-collapse:collapse; min-width:420px; font-size:.80rem; }
+                .block-calc-table caption { text-align:left; padding:9px 10px; color:#f4d7a8; font-weight:900; background:rgba(255,255,255,.045); border-bottom:1px solid rgba(255,255,255,.08); }
+                .block-calc-table th, .block-calc-table td { padding:8px 9px; border-bottom:1px solid rgba(255,255,255,.08); vertical-align:middle; }
+                .block-calc-table th { color:var(--muted); background:rgba(255,255,255,.035); font-weight:900; text-align:left; }
+                .block-calc-table td:nth-child(n+2), .block-calc-table th:nth-child(n+2) { text-align:right; }
+                .block-calc-table tr:last-child td, .block-calc-table tr:last-child th { border-bottom:none; }
+                .block-calc-table .block-total-row td { font-weight:950; color:#ffe3aa; background:rgba(196,160,111,.10); }
+                .block-calc-table .block-muted-cell { color:var(--muted); font-size:.72rem; font-weight:800; }
+                .block-calc-inputs input { width:100%; min-width:86px; text-align:right; }
+                .block-calc-inputs input[disabled] { opacity:.82; }
+                .block-calc-bom-style td:first-child { min-width:160px; }
+                .block-calc-bom-style .block-muted-cell { line-height:1.35; }
+                .block-calc-bom-style td:nth-child(4), .block-calc-bom-style th:nth-child(4) { text-align:right; white-space:nowrap; }
                 .block-bom-wrap { overflow:auto; border:1px solid var(--line); border-radius:14px; }
                 .block-bom { width:100%; border-collapse:collapse; min-width: 520px; font-size:.78rem; }
                 .block-bom th, .block-bom td { padding:8px 9px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; }
                 .block-bom th { color:var(--muted); background:rgba(255,255,255,.035); font-weight:800; }
                 .block-bom td:nth-child(n+2), .block-bom th:nth-child(n+2) { text-align:right; }
-                .block-load-card { margin: 10px 0; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.025); }
-                .block-load-card h4 { margin: 0 0 8px; font-size: .94rem; }
-                .block-load-panel-grid { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; margin-bottom:10px; }
-                .block-load-panel { border:1px solid rgba(255,255,255,.10); border-radius:14px; padding:9px; background:rgba(255,255,255,.075); }
-                .block-load-panel-title { color:var(--muted); font-weight:900; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; margin-bottom:7px; }
-                .block-load-fields { display:grid; grid-template-columns:1fr; gap:7px; }
-                .block-load-fields label { display:block; color:var(--muted); font-size:.72rem; margin-bottom:4px; }
-                .block-load-fields input, .block-load-fields select { width:100%; min-width:0; }
-                .block-load-summary { display:grid; gap:8px; margin-top:8px; font-size:.81rem; }
-                .block-load-status { padding:9px 10px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); font-weight:800; }
+                .block-load-launcher { margin: 10px 0 12px; display:grid; gap:8px; }
+                .block-settings-launcher { margin: 0 0 12px; display:grid; gap:8px; }
+                .block-load-launcher-button, .block-settings-launcher-button { width:100%; justify-content:space-between; align-items:center; display:flex; gap:10px; padding:10px 12px !important; border-radius:14px !important; }
+                .block-settings-launcher-button .block-load-launcher-main span { max-width:100%; }
+                .block-settings-modal-backdrop { z-index: 2350; }
+                .block-load-launcher-main { display:flex; flex-direction:column; gap:2px; text-align:left; }
+                .block-load-launcher-main strong { font-size:.92rem; }
+                .block-load-launcher-main span { color:var(--muted); font-size:.74rem; font-weight:700; }
+                .block-load-launcher-status { white-space:nowrap; border-radius:999px; padding:5px 8px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); font-size:.72rem; font-weight:900; }
+                .block-load-launcher-status.ok { color:#bff1d1; border-color:rgba(46,139,87,.65); background:rgba(46,139,87,.16); }
+                .block-load-launcher-status.risk { color:#ffe3a3; border-color:rgba(255,196,87,.75); background:rgba(255,196,87,.14); }
+                .block-load-launcher-status.bad { color:#ffd0d0; border-color:rgba(255,105,105,.8); background:rgba(255,105,105,.16); }
+                .block-load-modal-backdrop { z-index: 2300; }
+                .block-load-modal { width:min(1080px, 100%); max-height:92vh; background:#121a22; border:1px solid var(--line); border-radius:28px; box-shadow:0 24px 80px rgba(15,23,42,.44); overflow:hidden; display:flex; flex-direction:column; }
+                .block-load-modal-body { padding:16px; overflow:auto; display:grid; gap:14px; }
+                .block-load-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,.34fr); gap:12px; align-items:stretch; }
+                .block-load-hero-card { border:1px solid rgba(255,255,255,.10); border-radius:18px; padding:12px; background:linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.035)); }
+                .block-load-hero-title { font-weight:900; font-size:1rem; margin-bottom:5px; }
+                .block-load-hero-sub { color:var(--muted); font-size:.8rem; line-height:1.35; }
+                .block-load-panel-grid { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; }
+                .block-load-panel { border:1px solid rgba(255,255,255,.10); border-radius:18px; padding:12px; background:rgba(255,255,255,.055); box-shadow: inset 0 1px 0 rgba(255,255,255,.04); }
+                .block-load-panel-title { color:#f4d7a8; font-weight:900; font-size:.76rem; text-transform:uppercase; letter-spacing:.055em; margin-bottom:9px; }
+                .block-load-fields { display:grid; grid-template-columns:1fr; gap:9px; }
+                .block-load-fields label { display:block; color:var(--muted); font-size:.74rem; margin-bottom:5px; }
+                .block-load-fields input, .block-load-fields select { width:100%; min-width:0; border-radius:11px; }
+                .block-load-summary { display:grid; gap:12px; font-size:.82rem; }
+                .block-load-status { padding:10px 12px; border-radius:16px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); font-weight:900; line-height:1.35; }
                 .block-load-status.ok { border-color: rgba(46,139,87,.65); background: rgba(46,139,87,.16); color:#bff1d1; }
                 .block-load-status.risk { border-color: rgba(255,196,87,.75); background: rgba(255,196,87,.14); color:#ffe3a3; }
                 .block-load-status.bad { border-color: rgba(255,105,105,.8); background: rgba(255,105,105,.16); color:#ffd0d0; }
-                .block-load-grid { display:grid; grid-template-columns: 1fr auto; border:1px solid rgba(255,255,255,.1); border-radius:14px; overflow:hidden; }
-                .block-load-grid > div { padding:7px 9px; border-bottom:1px solid rgba(255,255,255,.08); }
+                .block-load-grid { display:grid; grid-template-columns: minmax(0,1fr) minmax(96px,auto); border:1px solid rgba(255,255,255,.10); border-radius:0 0 16px 16px; overflow:hidden; }
+                .block-load-grid > div { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); min-width:0; overflow-wrap:anywhere; }
                 .block-load-grid > div:nth-child(odd) { color:var(--muted); background:rgba(255,255,255,.025); }
-                .block-load-grid > div:nth-child(even) { text-align:right; font-weight:800; }
+                .block-load-grid > div:nth-child(even) { text-align:right; font-weight:900; }
                 .block-load-grid > div:nth-last-child(-n+2) { border-bottom:none; }
-                .block-load-note { color: var(--muted); font-size: .74rem; line-height: 1.35; }
-                .block-load-sections { display:grid; gap:8px; }
-                .block-load-section { border:1px solid rgba(255,255,255,.10); border-radius:14px; overflow:hidden; }
-                .block-load-section h5 { margin:0; padding:8px 10px; background:rgba(255,255,255,.05); font-size:.78rem; color:var(--muted); }
+                .block-load-note { color: var(--muted); font-size: .76rem; line-height: 1.45; border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:11px 12px; background:rgba(255,255,255,.035); }
+                .block-load-sections { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
+                .block-load-section { border:1px solid rgba(255,255,255,.10); border-radius:16px; overflow:hidden; background:rgba(255,255,255,.035); }
+                .block-load-section h5 { margin:0; padding:10px 12px; background:rgba(255,255,255,.055); font-size:.8rem; color:#f4d7a8; font-weight:900; }
                 body.theme-light .block-truss-section, body.theme-light .block-truss-card { background: linear-gradient(180deg, rgba(20,24,30,.98), rgba(10,13,18,.98)); border-color:rgba(255,255,255,.10); }
                 body.theme-light .block-grid-wrap { background: linear-gradient(180deg, rgba(15,18,24,.98), rgba(7,10,14,.98)); border-color:rgba(255,255,255,.10); }
                 body.theme-light .block-grid { background-color:#14181f; border-color:rgba(255,255,255,.08); }
                 body.theme-light .block-library button { background: linear-gradient(180deg, rgba(41,47,56,.95), rgba(24,28,34,.95)); color:#e8edf4; border-color:rgba(255,255,255,.10); }
                 body.theme-light .block-library button.active { background: linear-gradient(180deg, rgba(92,101,114,.98), rgba(42,49,58,.98)); border-color:rgba(205,214,224,.95); }
-                body.theme-light .block-summary-grid, body.theme-light .block-bom-wrap, body.theme-light .block-bom th, body.theme-light .block-bom td, body.theme-light .block-load-card, body.theme-light .block-load-grid, body.theme-light .block-load-panel, body.theme-light .block-load-section { border-color:#d7c9b5; }
-                body.theme-light .block-summary-grid > div:nth-child(odd), body.theme-light .block-bom th, body.theme-light .block-load-grid > div:nth-child(odd) { background:#f4ecde; }
-                body.theme-light .block-load-card { background:#fff7e9; }
-                body.theme-light .block-load-status.ok { color:#1d6b3a; background:#e4f5e7; }
-                body.theme-light .block-load-status.risk { color:#805b00; background:#fff2c9; }
-                body.theme-light .block-load-status.bad { color:#a53838; background:#ffe0dc; }
-                @media (max-width: 1050px) { .block-truss-layout { grid-template-columns: 1fr; } }
-                @media (max-width: 1050px) { .block-load-panel-grid { grid-template-columns:1fr; } }
+                body.theme-light .block-calc-table-wrap, body.theme-light .block-calc-table th, body.theme-light .block-calc-table td, body.theme-light .block-bom-wrap, body.theme-light .block-bom th, body.theme-light .block-bom td, body.theme-light .block-load-grid, body.theme-light .block-load-panel, body.theme-light .block-load-section, body.theme-light .block-load-hero-card, body.theme-light .block-load-note, body.theme-light .block-load-modal { border-color:#d7c9b5; }
+                body.theme-light .block-load-modal { background:linear-gradient(180deg, #ffffff, #f6f1e8); }
+                body.theme-light .block-load-hero-card, body.theme-light .block-load-panel, body.theme-light .block-load-section, body.theme-light .block-load-note { background:#fff7e9; }
+                body.theme-light .block-calc-table th, body.theme-light .block-calc-table caption, body.theme-light .block-bom th, body.theme-light .block-load-grid > div:nth-child(odd) { background:#f4ecde; }
+                body.theme-light .block-calc-table caption, body.theme-light .block-load-panel-title, body.theme-light .block-load-section h5 { color:#7a5732; }
+                body.theme-light .block-load-status.ok, body.theme-light .block-load-launcher-status.ok { color:#1d6b3a; background:#e4f5e7; }
+                body.theme-light .block-load-status.risk, body.theme-light .block-load-launcher-status.risk { color:#805b00; background:#fff2c9; }
+                body.theme-light .block-load-status.bad, body.theme-light .block-load-launcher-status.bad { color:#a53838; background:#ffe0dc; }
+                @media (max-width: 1050px) { .block-truss-layout, .block-project-panel { grid-template-columns: 1fr; } }
+                @media (max-width: 1050px) { .block-load-panel-grid, .block-load-hero, .block-load-sections { grid-template-columns:1fr; } }
                 @media (max-width: 700px) { .block-truss-controls, .block-truss-prices { grid-template-columns: repeat(2, minmax(0,1fr)); } .block-library { grid-template-columns: repeat(auto-fill, minmax(78px,1fr)); } .block-truss-header { flex-direction:column; } }
             `;
             document.head.appendChild(style);
@@ -7582,15 +7673,21 @@
             loadDraft();
             const host = q('trussModule');
             if (!host) return;
-            const projects = host.querySelector('.truss-projects');
+            host.classList.add('truss-clean-v35');
+            host.querySelectorAll(':scope > .truss-header-row, :scope > .truss-layout, :scope > .truss-projects').forEach(el => el.remove());
             const html = `
                 <section id="blockTrussModule" class="block-truss-section" aria-label="Блочный конструктор ферм">
                     <div class="block-truss-header">
                         <div>
                             <h3>Блочный конструктор ферм</h3>
-                            <div class="truss-subtitle">Комплектация из реальных блоков: прямые фермы 0.5–3 м, углы, кубы, Т-узлы, кресты и базы. Соединение сделано как CQ2: на один торцевой стык считается 1 комплект = 4 конусных коннектора C2-88, 8 пальцев C2-67 и 8 шплинтов.</div>
+                            <div class="truss-subtitle">Чистый рабочий экран: библиотека блоков, поле сборки, ведомость, стоимость и проверка нагрузки без старого режима рисования 2D/3D.</div>
                         </div>
                         <button type="button" class="btn-secondary" onclick="FEG35BlockConstructor.clear(true)">⌫ Очистить блоки</button>
+                    </div>
+                    <div class="block-project-panel">
+                        <div><label for="trussProjectName">Проект</label><input id="trussProjectName" placeholder="Портал, LED-экран, задник"></div>
+                        <div><label for="trussClientName">Клиент</label><input id="trussClientName" list="clientDatalist" placeholder="Клиент / компания"></div>
+                        <div><label>Уборка</label><div class="block-clean-note">Старый режим рисования скрыт. Активен только блочный конструктор.</div></div>
                     </div>
                     <div class="block-truss-layout">
                         <div class="block-truss-card">
@@ -7599,13 +7696,26 @@
                                 <div><label for="blockRows">Сетка В</label><input id="blockRows" type="number" min="6" max="40" step="1"></div>
                                 <div><label for="blockCellMeters">Клетка, м</label><select id="blockCellMeters"><option value="0.5">0.5 м</option><option value="1">1 м</option></select></div>
                                 <div><label for="blockZoom">Масштаб</label><input id="blockZoom" type="range" min="60" max="180" step="5"></div>
-                                <div><label for="blockOrientation">Поворот</label><select id="blockOrientation"><option value="h">Горизонтально</option><option value="v">Вертикально</option></select></div>
-                                <div><label for="blockMode">Режим</label><select id="blockMode"><option value="place">Ставить</option><option value="erase">Удалять</option></select></div>
-                                <div><label for="blockBgMode">Фон</label><select id="blockBgMode"><option value="clean">Чистый фон</option><option value="grid">Фон с разметкой</option></select></div>
-                                <div><label for="blockGridDensity">Разметка</label><select id="blockGridDensity"><option value="thin">Тонкая</option><option value="medium">Средняя</option><option value="dense">Плотная</option></select></div>
+                                <select id="blockOrientation" class="block-hidden-select" aria-hidden="true"><option value="h">Горизонтально</option><option value="v">Вертикально</option></select>
+                                <div class="block-display-control">
+                                    <label>Фон / разметка</label>
+                                    <details id="blockDisplayDetails" class="block-display-menu">
+                                        <summary><span>Настроить вид</span><small id="blockDisplaySummary">чистый фон</small></summary>
+                                        <div class="block-display-menu-body">
+                                            <label class="block-check-row"><input id="blockGridEnabled" type="checkbox"> Показывать разметку</label>
+                                            <div class="block-check-group">
+                                                <div class="block-check-group-title">Плотность разметки</div>
+                                                <label class="block-check-row"><input id="blockGridThin" type="checkbox" data-grid-density="thin"> Тонкая</label>
+                                                <label class="block-check-row"><input id="blockGridMedium" type="checkbox" data-grid-density="medium"> Средняя</label>
+                                                <label class="block-check-row"><input id="blockGridDense" type="checkbox" data-grid-density="dense"> Плотная</label>
+                                            </div>
+                                            <select id="blockBgMode" class="block-hidden-select" aria-hidden="true"><option value="clean">Чистый фон</option><option value="grid">Фон с разметкой</option></select>
+                                            <select id="blockGridDensity" class="block-hidden-select" aria-hidden="true"><option value="thin">Тонкая</option><option value="medium">Средняя</option><option value="dense">Плотная</option></select>
+                                        </div>
+                                    </details>
+                                </div>
                                 <div><label for="blockTemplateWidthM">Шаблон Ш, м</label><input id="blockTemplateWidthM" type="number" min="1" max="50" step="0.5"></div>
                                 <div><label for="blockTemplateHeightM">Шаблон В, м</label><input id="blockTemplateHeightM" type="number" min="1" max="30" step="0.5"></div>
-                                <div><label for="blockInstall">Монтаж, ₽</label><input id="blockInstall" type="number" min="0" step="500"></div>
                             </div>
                             <div id="blockLibrary" class="block-library"></div>
                             <div class="block-truss-toolbar">
@@ -7613,60 +7723,109 @@
                                 <button type="button" class="btn-secondary" onclick="FEG35BlockConstructor.template('frame')">Рама</button>
                                 <button type="button" class="btn-secondary" onclick="FEG35BlockConstructor.rotate()">↔ / ↕ новый</button>
                                 <button type="button" class="btn-secondary" onclick="FEG35BlockConstructor.rotateSelected()">⟳ Повернуть выбранный 90°</button>
-                                <button type="button" class="btn-secondary" onclick="FEG35BlockConstructor.setMode('erase')">Удалять</button>
+                                <button type="button" class="btn-secondary" onclick="FEG35BlockConstructor.deleteSelected()">🗑 Удалить выбранный</button>
                                 <button type="button" class="btn-secondary" onclick="FEG35BlockConstructor.exportJson()">⇩ JSON</button>
                             </div>
                             <div class="block-grid-wrap"><div id="blockGrid" class="block-grid"></div></div>
-                            <div class="block-caption"><span>Клик по сетке ставит выбранный блок. Элемент можно перетаскивать мышкой или пальцем. Торцы магнитятся к ближайшим торцам и узлам CQ. Углы/U-блоки в расчётном габарите добавляют по 0.5 м на подключённый торец. Кнопка ⟳ поворачивает выбранный на 90°.</span><span id="blockCountLabel">Блоков: 0</span></div>
+                            <div class="block-caption"><span>Клик/тап по сетке ставит выбранный блок и сразу выделяет его. Существующий элемент можно выбрать и перетаскивать мышкой или пальцем. Торцы магнитятся к ближайшим торцам и узлам CQ. Углы/U-блоки в расчётном габарите добавляют по 0.5 м на подключённый торец. Кнопка ⟳ поворачивает выбранный на 90°, кнопка 🗑 удаляет только выделенный объект.</span><span id="blockCountLabel">Блоков: 0</span></div>
                         </div>
                         <aside class="block-truss-card">
-                            <h3 style="margin-top:0">Расчёт блочной комплектации</h3>
-                            <div class="block-truss-prices">
-                                <div><label for="blockPricePerMeter">Прокат, ₽/м</label><input id="blockPricePerMeter" type="number" min="0" step="50"></div>
-                                <div><label for="blockNodePrice">Прокат узла, ₽/шт</label><input id="blockNodePrice" type="number" min="0" step="50"></div>
-                                <div><label for="blockBasePrice">База, ₽</label><input id="blockBasePrice" type="number" min="0" step="50"></div>
-                                <div><label for="blockPinPrice">C2-88, ₽/шт</label><input id="blockPinPrice" type="number" min="0" step="10"></div>
-                                <div><label for="blockWeightPerMeter">Вес прямой, кг/м</label><input id="blockWeightPerMeter" type="number" min="0" step="0.1"></div>
-                                <div><label>Вес узлов</label><input value="по МДМТ" disabled title="Масса угловых блоков берётся по выбранной серии T29/T39"></div>
-                                <div><label for="blockPinWeight">C2-88, кг</label><input id="blockPinWeight" type="number" min="0" step="0.05"></div>
-                                <div><label for="blockC2PinWeight">C2-67, кг</label><input id="blockC2PinWeight" value="0.04" disabled title="Масса пальца C2-67 по карточке МДМТ"></div>
+                            <h3 style="margin-top:0">Итог комплектации</h3>
+                            <div class="block-settings-launcher">
+                                <button id="blockPricingOpenButton" type="button" class="btn-secondary block-settings-launcher-button" onclick="FEG35BlockConstructor.openPricingModal()">
+                                    <span class="block-load-launcher-main"><strong>⚙ Настройки цен/веса</strong><span>Прокат, монтаж, вес ферм, баз/блинов и крепежа</span></span>
+                                    <span class="block-load-launcher-status">открыть</span>
+                                </button>
                             </div>
-                            <div class="block-load-card">
-                                <h4>Проверка нагрузки по таблицам MDM</h4>
-                                <div class="block-load-panel-grid">
-                                    <div class="block-load-panel">
-                                        <div class="block-load-panel-title">1. Ферма и пролёт</div>
-                                        <div class="block-load-fields">
-                                            <div><label for="blockTrussSeries">Тип фермы</label><select id="blockTrussSeries"><option value="T29Q">T29 вид Q</option><option value="T39Q">T39 вид Q</option></select></div>
-                                            <div><label for="blockLoadSpan">Пролёт L, м / 0 = авто с углами</label><input id="blockLoadSpan" type="number" min="0" max="30" step="0.5"></div>
-                                        </div>
-                                    </div>
-                                    <div class="block-load-panel">
-                                        <div class="block-load-panel-title">2. Фактическая нагрузка</div>
-                                        <div class="block-load-fields">
-                                            <div><label for="blockFactDistributed">Распределённая, кг/м</label><input id="blockFactDistributed" type="number" min="0" step="1"></div>
-                                            <div><label for="blockPointScheme">Схема точечной</label><select id="blockPointScheme"><option value="p1">P1 / центр</option><option value="p2">P2 / две точки</option><option value="p3">P3 / три точки</option><option value="p4">P4 / 4 точки</option></select></div>
-                                            <div><label for="blockFactPoint">Точечная, кг</label><input id="blockFactPoint" type="number" min="0" step="1"></div>
-                                        </div>
-                                    </div>
-                                    <div class="block-load-panel">
-                                        <div class="block-load-panel-title">3. Консоль</div>
-                                        <div class="block-load-fields">
-                                            <div><label for="blockCantileverLength">Консоль Lк, м</label><input id="blockCantileverLength" type="number" min="0" max="6" step="0.5"></div>
-                                            <div><label for="blockCantileverView">Вид консоли</label><select id="blockCantileverView"><option value="Q">Q</option><option value="T">T</option></select></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div id="blockLoadSummary" class="block-load-summary"></div>
+                            <div class="block-load-launcher">
+                                <button id="blockLoadOpenButton" type="button" class="btn-secondary block-load-launcher-button" onclick="FEG35BlockConstructor.openLoadModal()">
+                                    <span class="block-load-launcher-main"><strong>⚖ Проверка нагрузки</strong><span id="blockLoadLauncherSub">Таблицы MDM T29/T39 · пролёт, точка, консоль</span></span>
+                                    <span id="blockLoadLauncherStatus" class="block-load-launcher-status">не задано</span>
+                                </button>
                             </div>
-                            <div id="blockSummary" class="block-summary-grid"></div>
+                            <div id="blockSummary" class="block-calc-table-wrap"></div>
                             <div class="block-bom-wrap"><table class="block-bom" aria-label="Ведомость блоков ферм"><thead><tr><th>Элемент</th><th>Кол-во</th><th>Метраж</th><th>Вес</th><th>Прокат</th></tr></thead><tbody id="blockBomBody"></tbody></table></div>
                         </aside>
+                        <div id="blockPricingModal" class="modal-backdrop block-settings-modal-backdrop" aria-hidden="true">
+                            <div class="block-load-modal" role="dialog" aria-modal="true" aria-label="Настройки цен и веса блочной комплектации">
+                                <div class="pdf-modal-header">
+                                    <div class="pdf-modal-title">⚙ Настройки цен/веса</div>
+                                    <button type="button" class="close-modal" onclick="FEG35BlockConstructor.closePricingModal()" aria-label="Закрыть">×</button>
+                                </div>
+                                <div class="block-load-modal-body">
+                                    <div class="block-load-hero">
+                                        <div class="block-load-hero-card">
+                                            <div class="block-load-hero-title">Расчётные параметры блочной комплектации</div>
+                                            <div class="block-load-hero-sub">Здесь настраиваются цены и веса, которые участвуют в итоговой комплектации, ведомости, массе и стоимости. Сам рабочий экран конструктора остаётся чистым.</div>
+                                        </div>
+                                        <div class="block-load-status">Изменения применяются сразу после ввода и сохраняются в черновике конструктора.</div>
+                                    </div>
+                                    <div class="block-calc-table-wrap">
+                                        <table class="block-calc-table block-calc-inputs block-calc-bom-style" aria-label="Параметры расчёта блочной комплектации">
+                                            <caption>Расчётная комплектация</caption>
+                                            <thead><tr><th>Позиция</th><th>Цена</th><th>Вес</th><th>Ед.</th></tr></thead>
+                                            <tbody>
+                                                <tr><td><b>Монтаж / демонтаж</b></td><td><input id="blockInstall" type="number" min="0" step="500"></td><td class="block-muted-cell">—</td><td class="block-muted-cell">₽</td></tr>
+                                                <tr><td><b>Прямая ферма</b><br><span class="block-muted-cell">T29/T39, расчёт по метражу</span></td><td><input id="blockPricePerMeter" type="number" min="0" step="50"></td><td><input id="blockWeightPerMeter" type="number" min="0" step="0.1"></td><td class="block-muted-cell">₽/м · кг/м</td></tr>
+                                                <tr><td><b>Углы / U-блоки</b><br><span class="block-muted-cell">вес берётся по выбранной серии МДМТ</span></td><td><input id="blockNodePrice" type="number" min="0" step="50"></td><td><input value="по МДМТ" disabled title="Масса угловых блоков берётся по выбранной серии T29/T39"></td><td class="block-muted-cell">₽/шт</td></tr>
+                                                <tr><td><b>База / блин</b><br><span class="block-muted-cell">отдельно указывается вес одной базы</span></td><td><input id="blockBasePrice" type="number" min="0" step="50"></td><td><input id="blockBaseWeight" type="number" min="0" step="0.1"></td><td class="block-muted-cell">₽/шт · кг/шт</td></tr>
+                                                <tr><td><b>Конусный коннектор C2-88</b><br><span class="block-muted-cell">4 шт на один CQ2-стык</span></td><td><input id="blockPinPrice" type="number" min="0" step="10"></td><td><input id="blockPinWeight" type="number" min="0" step="0.05"></td><td class="block-muted-cell">₽/шт · кг/шт</td></tr>
+                                                <tr><td><b>Палец C2-67</b><br><span class="block-muted-cell">8 шт на один CQ2-стык</span></td><td class="block-muted-cell">—</td><td><input id="blockC2PinWeight" value="0.04" disabled title="Масса пальца C2-67 по карточке МДМТ"></td><td class="block-muted-cell">кг/шт</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="block-load-note">Вес угловых блоков U001–U024 берётся из базы по выбранной серии T29/T39. Вес базы/блина указывается отдельно и участвует в общей массе комплекта.</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="blockLoadModal" class="modal-backdrop block-load-modal-backdrop" aria-hidden="true">
+                            <div class="block-load-modal" role="dialog" aria-modal="true" aria-label="Проверка нагрузки по таблицам MDM">
+                                <div class="pdf-modal-header">
+                                    <div class="pdf-modal-title">⚖ Проверка нагрузки по таблицам MDM</div>
+                                    <button type="button" class="close-modal" onclick="FEG35BlockConstructor.closeLoadModal()" aria-label="Закрыть">×</button>
+                                </div>
+                                <div class="block-load-modal-body">
+                                    <div class="block-load-hero">
+                                        <div class="block-load-hero-card">
+                                            <div class="block-load-hero-title">Паспортный контроль пролёта, равномерной, точечной и консольной нагрузки</div>
+                                            <div class="block-load-hero-sub">Окно использует те же данные конструктора: авто-пролёт считает прямые фермы и подключённые U-блоки, ручной пролёт переопределяет авто-значение. Это справочная проверка по таблице, не инженерный расчёт.</div>
+                                        </div>
+                                        <div id="blockLoadModalStatus" class="block-load-status block-load-modal-status">Введите фактическую нагрузку для проверки</div>
+                                    </div>
+                                    <div class="block-load-panel-grid">
+                                        <div class="block-load-panel">
+                                            <div class="block-load-panel-title">1. Ферма и пролёт</div>
+                                            <div class="block-load-fields">
+                                                <div><label for="blockTrussSeries">Тип фермы</label><select id="blockTrussSeries"><option value="T29Q">T29 вид Q</option><option value="T39Q">T39 вид Q</option></select></div>
+                                                <div><label for="blockLoadSpan">Пролёт L, м / 0 = авто с углами</label><input id="blockLoadSpan" type="number" min="0" max="30" step="0.5"></div>
+                                            </div>
+                                        </div>
+                                        <div class="block-load-panel">
+                                            <div class="block-load-panel-title">2. Фактическая нагрузка</div>
+                                            <div class="block-load-fields">
+                                                <div><label for="blockFactDistributed">Распределённая, кг/м</label><input id="blockFactDistributed" type="number" min="0" step="1"></div>
+                                                <div><label for="blockPointScheme">Схема точечной</label><select id="blockPointScheme"><option value="p1">P1 / центр</option><option value="p2">P2 / две точки</option><option value="p3">P3 / три точки</option><option value="p4">P4 / 4 точки</option></select></div>
+                                                <div><label for="blockFactPoint">Точечная, кг</label><input id="blockFactPoint" type="number" min="0" step="1"></div>
+                                            </div>
+                                        </div>
+                                        <div class="block-load-panel">
+                                            <div class="block-load-panel-title">3. Консоль</div>
+                                            <div class="block-load-fields">
+                                                <div><label for="blockCantileverLength">Консоль Lк, м</label><input id="blockCantileverLength" type="number" min="0" max="6" step="0.5"></div>
+                                                <div><label for="blockCantileverView">Вид консоли</label><select id="blockCantileverView"><option value="Q">Q</option><option value="T">T</option></select></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="blockLoadSummary" class="block-load-summary"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>`;
-            if (projects) projects.insertAdjacentHTML('beforebegin', html);
-            else host.insertAdjacentHTML('beforeend', html);
+            host.insertAdjacentHTML('beforeend', html);
             bindUI();
+            bindPricingModal();
+            bindLoadModal();
             syncInputsFromState();
             renderLibrary();
             renderGrid();
@@ -7683,6 +7842,7 @@
             normalizeStateItems();
             if (!['clean','grid'].includes(state.bgMode)) state.bgMode = 'clean';
             if (!['thin','medium','dense'].includes(state.gridDensity)) state.gridDensity = 'medium';
+            state.mode = 'place';
             state.templateWidthM = Math.max(1, Number(state.templateWidthM || 6));
             state.templateHeightM = Math.max(1, Number(state.templateHeightM || 3));
         }
@@ -7690,8 +7850,120 @@
             try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(err) {}
         }
 
+        function openPricingModal(){
+            const modal = q('blockPricingModal');
+            if (!modal) return;
+            syncInputsFromState();
+            calculate();
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            const first = q('blockInstall');
+            if (first) setTimeout(() => first.focus(), 0);
+        }
+        function closePricingModal(){
+            const modal = q('blockPricingModal');
+            if (!modal) return;
+            syncStateFromInputs();
+            calculate();
+            saveDraft();
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+        function bindPricingModal(){
+            const modal = q('blockPricingModal');
+            if (!modal || modal.dataset.feg35Bound === '1') return;
+            modal.dataset.feg35Bound = '1';
+            modal.addEventListener('click', (event) => { if (event.target === modal) closePricingModal(); });
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.classList.contains('open')) closePricingModal();
+            });
+        }
+
+        function openLoadModal(){
+            const modal = q('blockLoadModal');
+            if (!modal) return;
+            calculate();
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            const first = q('blockTrussSeries');
+            if (first) setTimeout(() => first.focus(), 0);
+        }
+        function closeLoadModal(){
+            const modal = q('blockLoadModal');
+            if (!modal) return;
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+        function bindLoadModal(){
+            const modal = q('blockLoadModal');
+            if (!modal || modal.dataset.feg35Bound === '1') return;
+            modal.dataset.feg35Bound = '1';
+            modal.addEventListener('click', (event) => { if (event.target === modal) closeLoadModal(); });
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.classList.contains('open')) closeLoadModal();
+            });
+        }
+
+        function setChecked(id, value){
+            const el = q(id);
+            if (el) el.checked = !!value;
+        }
+        function densityLabel(value){
+            if (value === 'thin') return 'тонкая';
+            if (value === 'dense') return 'плотная';
+            return 'средняя';
+        }
+        function syncDisplayControlsFromState(){
+            const bg = state.bgMode || 'clean';
+            const density = state.gridDensity || 'medium';
+            setChecked('blockGridEnabled', bg === 'grid');
+            setChecked('blockGridThin', density === 'thin');
+            setChecked('blockGridMedium', density === 'medium');
+            setChecked('blockGridDense', density === 'dense');
+            writeValue('blockBgMode', bg);
+            writeValue('blockGridDensity', density);
+            const summary = q('blockDisplaySummary');
+            if (summary) summary.textContent = bg === 'grid' ? `сетка · ${densityLabel(density)}` : 'чистый фон';
+        }
+        function setGridDensity(value){
+            const density = ['thin','medium','dense'].includes(value) ? value : 'medium';
+            state.gridDensity = density;
+            writeValue('blockGridDensity', density);
+            setChecked('blockGridThin', density === 'thin');
+            setChecked('blockGridMedium', density === 'medium');
+            setChecked('blockGridDense', density === 'dense');
+        }
+        function refreshAfterDisplayChange(){
+            syncDisplayControlsFromState();
+            renderLibrary(); renderGrid(); calculate(); saveDraft();
+        }
+        function bindDisplayControls(){
+            const gridEnabled = q('blockGridEnabled');
+            if (gridEnabled && gridEnabled.dataset.feg35Bound !== '1') {
+                gridEnabled.dataset.feg35Bound = '1';
+                gridEnabled.addEventListener('change', () => {
+                    state.bgMode = gridEnabled.checked ? 'grid' : 'clean';
+                    writeValue('blockBgMode', state.bgMode);
+                    refreshAfterDisplayChange();
+                });
+            }
+            ['blockGridThin','blockGridMedium','blockGridDense'].forEach(id => {
+                const el = q(id);
+                if (!el || el.dataset.feg35Bound === '1') return;
+                el.dataset.feg35Bound = '1';
+                el.addEventListener('change', () => {
+                    const density = el.dataset.gridDensity || 'medium';
+                    state.bgMode = 'grid';
+                    writeValue('blockBgMode', 'grid');
+                    if (gridEnabled) gridEnabled.checked = true;
+                    setGridDensity(density);
+                    refreshAfterDisplayChange();
+                });
+            });
+        }
+
         function bindUI(){
-            ['blockCols','blockRows','blockCellMeters','blockZoom','blockOrientation','blockMode','blockBgMode','blockGridDensity','blockTemplateWidthM','blockTemplateHeightM','blockInstall','blockPricePerMeter','blockNodePrice','blockBasePrice','blockPinPrice','blockWeightPerMeter','blockPinWeight','blockTrussSeries','blockLoadSpan','blockFactDistributed','blockPointScheme','blockFactPoint','blockCantileverLength','blockCantileverView'].forEach(id => {
+            ['trussProjectName','trussClientName','blockCols','blockRows','blockCellMeters','blockZoom','blockOrientation','blockBgMode','blockGridDensity','blockTemplateWidthM','blockTemplateHeightM','blockInstall','blockPricePerMeter','blockNodePrice','blockBasePrice','blockBaseWeight','blockPinPrice','blockWeightPerMeter','blockPinWeight','blockTrussSeries','blockLoadSpan','blockFactDistributed','blockPointScheme','blockFactPoint','blockCantileverLength','blockCantileverView'].forEach(id => {
                 const el = q(id);
                 if (!el || el.dataset.feg35Bound === '1') return;
                 el.dataset.feg35Bound = '1';
@@ -7699,17 +7971,21 @@
                 el.addEventListener('input', handler);
                 el.addEventListener('change', handler);
             });
+            bindDisplayControls();
         }
 
         function syncInputsFromState(){
+            writeValue('trussProjectName', state.projectName || '');
+            writeValue('trussClientName', state.clientName || '');
             writeValue('blockCols', state.cols);
             writeValue('blockRows', state.rows);
             writeValue('blockCellMeters', String(state.cellMeters));
             writeValue('blockZoom', state.zoom);
             writeValue('blockOrientation', state.orientation);
-            writeValue('blockMode', state.mode);
+            state.mode = 'place';
             writeValue('blockBgMode', state.bgMode || 'clean');
             writeValue('blockGridDensity', state.gridDensity || 'medium');
+            syncDisplayControlsFromState();
             writeValue('blockTemplateWidthM', state.templateWidthM || 6);
             writeValue('blockTemplateHeightM', state.templateHeightM || 3);
             state.manualPins = 0;
@@ -7717,6 +7993,7 @@
             writeValue('blockPricePerMeter', state.pricePerMeter);
             writeValue('blockNodePrice', state.nodePrice);
             writeValue('blockBasePrice', state.basePrice);
+            writeValue('blockBaseWeight', state.baseWeight);
             writeValue('blockPinPrice', state.pinPrice);
             writeValue('blockWeightPerMeter', state.weightPerMeter);
             writeValue('blockPinWeight', state.pinWeight);
@@ -7730,16 +8007,22 @@
             writeValue('blockCantileverView', state.cantileverView);
         }
         function syncStateFromInputs(){
+            state.projectName = q('trussProjectName') ? String(q('trussProjectName').value || '') : (state.projectName || '');
+            state.clientName = q('trussClientName') ? String(q('trussClientName').value || '') : (state.clientName || '');
             state.cols = Math.max(6, Math.min(60, Math.round(readNumber('blockCols', state.cols))));
             state.rows = Math.max(6, Math.min(40, Math.round(readNumber('blockRows', state.rows))));
             state.cellMeters = Number(q('blockCellMeters') ? q('blockCellMeters').value : state.cellMeters) || 0.5;
             state.zoom = Math.max(60, Math.min(180, Math.round(readNumber('blockZoom', state.zoom))));
             state.orientation = q('blockOrientation') ? q('blockOrientation').value : state.orientation;
-            state.mode = q('blockMode') ? q('blockMode').value : state.mode;
+            state.mode = 'place';
             state.bgMode = q('blockBgMode') ? q('blockBgMode').value : (state.bgMode || 'clean');
+            if (q('blockGridEnabled')) state.bgMode = q('blockGridEnabled').checked ? 'grid' : 'clean';
             if (!['clean','grid'].includes(state.bgMode)) state.bgMode = 'clean';
             state.gridDensity = q('blockGridDensity') ? q('blockGridDensity').value : (state.gridDensity || 'medium');
             if (!['thin','medium','dense'].includes(state.gridDensity)) state.gridDensity = 'medium';
+            writeValue('blockBgMode', state.bgMode);
+            writeValue('blockGridDensity', state.gridDensity);
+            syncDisplayControlsFromState();
             state.templateWidthM = Math.max(1, Math.min(50, readNumber('blockTemplateWidthM', state.templateWidthM || 6)));
             state.templateHeightM = Math.max(1, Math.min(30, readNumber('blockTemplateHeightM', state.templateHeightM || 3)));
             state.manualPins = 0;
@@ -7747,6 +8030,7 @@
             state.pricePerMeter = Math.max(0, readNumber('blockPricePerMeter', state.pricePerMeter));
             state.nodePrice = Math.max(0, readNumber('blockNodePrice', state.nodePrice));
             state.basePrice = Math.max(0, readNumber('blockBasePrice', state.basePrice));
+            state.baseWeight = Math.max(0, readNumber('blockBaseWeight', state.baseWeight));
             state.pinPrice = Math.max(0, readNumber('blockPinPrice', state.pinPrice));
             state.weightPerMeter = Math.max(0, readNumber('blockWeightPerMeter', state.weightPerMeter));
             state.pinWeight = Math.max(0, readNumber('blockPinWeight', state.pinWeight));
@@ -7978,13 +8262,13 @@
             }
             return '';
         }
-        function nodeSvg(item, spec){
+function nodeSvg(item, spec){
             const r = Number(item.r || 0);
             const label = spec.u ? `U${spec.u}` : esc(spec.short || '');
             if (spec.id === 'cornerU003') {
                 return `<svg class="node-svg u003-reference-svg" viewBox="215 414 150 150" aria-hidden="true">
                     <g transform="rotate(${r} 290 489)">
-                        <g opacity="0.94" fill="#f2f4f7" stroke="rgba(255,255,255,.35)" stroke-width="1.2" stroke-linejoin="round">
+                        <g class="u003-shape" opacity="0.94">
                             <path class="u003-ref-tube" d="M352.4,419.7c-36.4,0-72.8,0-109.2,0c-5.2,0-10.4,0-15.6,0c-11.6,0-11.6,18,0,18c36.4,0,72.8,0,109.2,0 c5.2,0,10.4,0,15.6,0C364,437.7,364,419.7,352.4,419.7L352.4,419.7z"></path>
                             <path class="u003-ref-tube" d="M236.6,549.1c0-35.1,0-70.2,0-105.3c0-5,0-10,0-15c0-11.6-18-11.6-18,0c0,35.1,0,70.2,0,105.3c0,5,0,10,0,15 C218.6,560.7,236.6,560.7,236.6,549.1L236.6,549.1z"></path>
                             <path class="u003-ref-tube" d="M302.7,549.1c0-18.1,0-36.1,0-54.2c0-11.6-18-11.6-18,0c0,18.1,0,36.1,0,54.2 C284.7,560.7,302.7,560.7,302.7,549.1L302.7,549.1z"></path>
@@ -7997,10 +8281,49 @@
                     </g>
                 </svg>`;
             }
+            if (spec.id === 'cornerU016') {
+                return `<svg class="node-svg u003-reference-svg" viewBox="160 360 215 210" aria-hidden="true">
+                    <g transform="rotate(${r} 266.5 466.6)">
+                        <g class="u016-shape" opacity="0.94">
+                            <path class="u003-ref-tube" d="M352.4,419.7c-18.2,0-36.5,0-54.7,0c-11.6,0-11.6,18,0,18c18.2,0,36.5,0,54.7,0 C364,437.7,364,419.7,352.4,419.7L352.4,419.7z"></path>
+                            <path class="u003-ref-tube" d="M236.6,549.1c0-18.1,0-36.1,0-54.2c0-11.6-18-11.6-18,0c0,18.1,0,36.1,0,54.2 C218.6,560.7,236.6,560.7,236.6,549.1L236.6,549.1z"></path>
+                            <path class="u003-ref-tube" d="M302.7,549.1c0-18.1,0-36.1,0-54.2c0-11.6-18-11.6-18,0c0,18.1,0,36.1,0,54.2 C284.7,560.7,302.7,560.7,302.7,549.1L302.7,549.1z"></path>
+                            <path class="u003-ref-tube" d="M352.4,485.9c-19.5,0-39.1,0-58.6,0c-11.6,0-11.6,18,0,18c19.5,0,39.1,0,58.6,0 C364,503.9,364,485.9,352.4,485.9L352.4,485.9z"></path>
+                            <path class="u003-ref-tube" d="M337.4,494.9c0-22.1,0-44.1,0-66.2c0-11.6-18-11.6-18,0c0,22.1,0,44.1,0,66.2 C319.4,506.5,337.4,506.5,337.4,494.9L337.4,494.9z"></path>
+                            <path class="u003-ref-tube" d="M293.7,519.2c-22.1,0-44.1,0-66.2,0c-11.6,0-11.6,18,0,18c22.1,0,44.1,0,66.2,0 C305.3,537.2,305.3,519.2,293.7,519.2L293.7,519.2z"></path>
+                            <path class="u003-ref-tube" d="M299,489.6c-19.3-19.9-38.6-39.8-58-59.7c-2.7-2.8-5.5-5.6-8.2-8.5c-6.7-6.9-17.3,3.7-10.6,10.6c19.3,19.9,38.6,39.8,58,59.7c2.7,2.8,5.5,5.6,8.2,8.5C295.2,507.2,305.8,496.5,299,489.6L299,489.6z"></path>
+                            <path class="u003-ref-tube" d="M292.3,423.4c-20.4,19.3-40.9,38.6-61.3,57.9c-2.9,2.7-5.8,5.5-8.7,8.2c-7,6.6,3.6,17.2,10.6,10.6c20.4-19.3,40.9-38.6,61.3-57.9c2.9-2.7,5.8-5.5,8.7-8.2C310,427.4,299.4,416.8,292.3,423.4L292.3,423.4z"></path>
+                            <path class="u003-ref-tube" d="M227.6,485.9c-19.5,0-39.1,0-58.6,0c-11.6,0-11.6,18,0,18c19.5,0,39.1,0,58.6,0 C239.2,503.9,239.2,485.9,227.6,485.9L227.6,485.9z"></path>
+                            <path class="u003-ref-tube" d="M202,494.9c0-22.1,0-44.1,0-66.2c0-11.6-18-11.6-18,0c0,22.1,0,44.1,0,66.2C184,506.5,202,506.5,202,494.9 L202,494.9z"></path>
+                            <path class="u003-ref-tube" d="M306.6,426.7c0-18.1,0-36.1,0-54.2c0-11.6-18-11.6-18,0c0,18.1,0,36.1,0,54.2 C288.6,438.3,306.6,438.3,306.6,426.7L306.6,426.7z"></path>
+                            <path class="u003-ref-tube" d="M236.6,426.7c0-18.1,0-36.1,0-54.2c0-11.6-18-11.6-18,0c0,18.1,0,36.1,0,54.2 C218.6,438.3,236.6,438.3,236.6,426.7L236.6,426.7z"></path>
+                            <path class="u003-ref-tube" d="M295.7,378.9c-22.1,0-44.1,0-66.2,0c-11.6,0-11.6,18,0,18c22.1,0,44.1,0,66.2,0 C307.3,396.9,307.3,378.9,295.7,378.9L295.7,378.9z"></path>
+                            <path class="u003-ref-tube" d="M225.6,417.7c-18.2,0-36.5,0-54.7,0c-11.6,0-11.6,18,0,18c18.2,0,36.5,0,54.7,0 C237.2,435.7,237.2,417.7,225.6,417.7L225.6,417.7z"></path>
+                        </g>
+                    </g>
+                </svg>`;
+            }
+            if (spec.id === 'cornerU017') {
+                return `<svg class="node-svg u003-reference-svg" viewBox="160 410 215 160" aria-hidden="true">
+                    <g transform="rotate(${r} 266.5 490.2)">
+                        <g class="u017-shape" opacity="0.94">
+                            <path class="u003-ref-tube" d="M352.4,419.7c-20.6,0-41.2,0-61.8,0c-32.9,0-65.8,0-98.7,0c-7.6,0-15.3,0-22.9,0c-11.6,0-11.6,18,0,18 c20.6,0,41.2,0,61.8,0c32.9,0,65.8,0,98.7,0c7.6,0,15.3,0,22.9,0C364,437.7,364,419.7,352.4,419.7L352.4,419.7z"></path>
+                            <path class="u003-ref-tube" d="M236.6,549.1c0-18.1,0-36.1,0-54.2c0-11.6-18-11.6-18,0c0,18.1,0,36.1,0,54.2 C218.6,560.7,236.6,560.7,236.6,549.1L236.6,549.1z"></path>
+                            <path class="u003-ref-tube" d="M302.7,549.1c0-18.1,0-36.1,0-54.2c0-11.6-18-11.6-18,0c0,18.1,0,36.1,0,54.2 C284.7,560.7,302.7,560.7,302.7,549.1L302.7,549.1z"></path>
+                            <path class="u003-ref-tube" d="M352.4,485.9c-19.5,0-39.1,0-58.6,0c-11.6,0-11.6,18,0,18c19.5,0,39.1,0,58.6,0 C364,503.9,364,485.9,352.4,485.9L352.4,485.9z"></path>
+                            <path class="u003-ref-tube" d="M337.4,494.9c0-22.1,0-44.1,0-66.2c0-11.6-18-11.6-18,0c0,22.1,0,44.1,0,66.2 C319.4,506.5,337.4,506.5,337.4,494.9L337.4,494.9z"></path>
+                            <path class="u003-ref-tube" d="M293.7,519.2c-22.1,0-44.1,0-66.2,0c-11.6,0-11.6,18,0,18c22.1,0,44.1,0,66.2,0 C305.3,537.2,305.3,519.2,293.7,519.2L293.7,519.2z"></path>
+                            <path class="u003-ref-tube" d="M300.2,491.1c-11-22.1-22.1-44.1-33.1-66.2c-4.3-8.6-17.3-1-13,7.6c11,22.1,22.1,44.1,33.1,66.2 C291.6,507.3,304.5,499.7,300.2,491.1L300.2,491.1z"></path>
+                            <path class="u003-ref-tube" d="M254.2,425c-11,22.1-22.1,44.1-33.1,66.2c-4.3,8.6,8.6,16.2,13,7.6c11-22.1,22.1-44.1,33.1-66.2 C271.4,423.9,258.5,416.3,254.2,425L254.2,425z"></path>
+                            <path class="u003-ref-tube" d="M227.6,485.9c-19.5,0-39.1,0-58.6,0c-11.6,0-11.6,18,0,18c19.5,0,39.1,0,58.6,0 C239.2,503.9,239.2,485.9,227.6,485.9L227.6,485.9z"></path>
+                            <path class="u003-ref-tube" d="M202,494.9c0-22.1,0-44.1,0-66.2c0-11.6-18-11.6-18,0c0,22.1,0,44.1,0,66.2C184,506.5,202,506.5,202,494.9 L202,494.9z"></path>
+                        </g>
+                    </g>
+                </svg>`;
+            }
             const kindMap = {
                 cornerU001:'u001', cornerU002:'u002', cornerU004:'u004', cornerU005:'u005',
-                cornerU012:'u012', cornerU016:'u016', cornerU017:'u017', cornerU020:'u020',
-                cornerU022:'u022', cornerU024:'u024'
+                cornerU012:'u012', cornerU020:'u020', cornerU022:'u022', cornerU024:'u024'
             };
             if (kindMap[spec.id]) {
                 return nodeStyleSvg(renderAngledNode(kindMap[spec.id]), label, r);
@@ -8043,6 +8366,301 @@
                 <circle cx="50" cy="52" r="2.8" fill="#5b6470"></circle>
             </svg>`;
         }
+
+        const MICRO_DEFAULTS = Object.freeze({
+            dx:0, dy:0, scale:1, scaleX:1, scaleY:1, rotate:0, opacity:1, brightness:1, lineWidth:0, fill:'', stroke:''
+        });
+        function microGet(item){
+            if (!item) return { ...MICRO_DEFAULTS };
+            const typeDefault = microGetTypeDefault(item.type, item.r || 0);
+            return { ...MICRO_DEFAULTS, ...(typeDefault || {}), ...(item.micro || {}) };
+        }
+        function microRotationKey(r){
+            const deg = ((Math.round(Number(r || 0) / 90) * 90) % 360 + 360) % 360;
+            return String(deg);
+        }
+        function microDefaultKey(type, rotation){
+            return `feg.micro.default.${String(type || '')}.${microRotationKey(rotation)}`;
+        }
+        function microGetTypeDefault(type, rotation){
+            try {
+                const raw = localStorage.getItem(microDefaultKey(type, rotation));
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+        function microSaveTypeDefault(type, rotation, micro){
+            if (!type || !micro) return;
+            localStorage.setItem(microDefaultKey(type, rotation), JSON.stringify({ ...micro }));
+        }
+        function microClearTypeDefault(type, rotation){
+            if (!type) return;
+            localStorage.removeItem(microDefaultKey(type, rotation));
+        }
+
+        function microCss(item){
+            if (!item || !item.micro) return '';
+            const m = microGet(item);
+            const transforms = [];
+            if (m.dx || m.dy) transforms.push(`translate(${Number(m.dx)}px, ${Number(m.dy)}px)`);
+            if (m.rotate) transforms.push(`rotate(${Number(m.rotate)}deg)`);
+            if (Number(m.scale) !== 1) transforms.push(`scale(${Number(m.scale)})`);
+            const filters = [];
+            if (Number(m.brightness) !== 1) filters.push(`brightness(${Number(m.brightness)})`);
+            return [
+                transforms.length ? `transform:${transforms.join(' ')};` : '',
+                'transform-origin:center center;',
+                Number(m.opacity) !== 1 ? `opacity:${Number(m.opacity)};` : '',
+                filters.length ? `filter:${filters.join(' ')};` : ''
+            ].join('');
+        }
+        function microSelected(){
+            if (!state || !state.selectedItemId) return null;
+            return state.items.find(item => String(item.id) === String(state.selectedItemId)) || null;
+        }
+        function microSetSelected(next){
+            const item = microSelected();
+            if (!item) return false;
+            const calibrated = { ...MICRO_DEFAULTS, ...next };
+            microSaveTypeDefault(item.type, item.r || 0, calibrated);
+            delete item.micro;
+            return true;
+        }
+        function microResetSelected(){
+            const item = microSelected();
+            if (!item) return false;
+            delete item.micro;
+            return true;
+        }
+        function microMount(){
+            if (document.getElementById('microTunerButton')) return;
+            const btn = document.createElement('button');
+            btn.id = 'microTunerButton';
+            btn.type = 'button';
+            btn.className = 'micro-tuner-fab';
+            btn.textContent = 'Калибр.'
+            btn.title = 'Админ-калибровка SVG элемента';
+            btn.addEventListener('click', microOpen);
+            document.body.appendChild(btn);
+        }
+        function microOpen(){
+            let panel = document.getElementById('microTunerPanel');
+            if (!panel) panel = microCreatePanel();
+            microFill();
+            panel.classList.add('open');
+        }
+        function microClose(){
+            const panel = document.getElementById('microTunerPanel');
+            if (panel) panel.classList.remove('open');
+        }
+        function microRow(key, label, min, max, step){
+            return `<div class="micro-row">
+                <label>${label}</label>
+                <input type="range" data-micro-key="${key}" min="${min}" max="${max}" step="${step}">
+                <input type="number" data-micro-num="${key}" min="${min}" max="${max}" step="${step}">
+            </div>`;
+        }
+        function microCreatePanel(){
+            const panel = document.createElement('div');
+            panel.id = 'microTunerPanel';
+            panel.className = 'micro-tuner';
+            panel.innerHTML = `
+                <h4>Админ-калибровка SVG</h4>
+                <div class="sub" id="microSubtitle">Выдели элемент на поле</div>
+                ${microRow('dx','X, px',-120,120,1)}
+                ${microRow('dy','Y, px',-120,120,1)}
+                ${microRow('scale','Масштаб',0.2,2,0.01)}
+                ${microRow('scaleX','Раст. X',0.2,2.5,0.01)}
+                ${microRow('scaleY','Раст. Y',0.2,2.5,0.01)}
+                ${microRow('rotate','Поворот',-180,180,1)}
+                ${microRow('opacity','Прозрачн.',0.1,1,0.01)}
+                ${microRow('brightness','Яркость',0.4,1.8,0.01)}
+                ${microRow('lineWidth','Линия',0,20,0.5)}
+                <div class="micro-row">
+                    <label>Заливка</label>
+                    <input type="color" data-micro-key="fill">
+                    <input type="text" data-micro-num="fillText" placeholder="#f2f4f7">
+                </div>
+                <div class="micro-row">
+                    <label>Контур</label>
+                    <input type="color" data-micro-key="stroke">
+                    <input type="text" data-micro-num="strokeText" placeholder="#d6dce4">
+                </div>
+                <div class="micro-actions">
+                    <button class="primary" type="button" data-micro-action="save">Сохранить</button>
+                    <button type="button" data-micro-action="reset">Сбросить объект</button>
+                    <button type="button" data-micro-action="clear-default">Сбросить калибровку типа</button>
+                    <button type="button" data-micro-action="close">Закрыть</button>
+                </div>
+                <div class="micro-hint">Это админ-калибровка SVG выбранного типа и выбранного поворота. Раст. X/Y позволяет отдельно вытянуть рисунок по горизонтали и вертикали. X больше = вправо, Y больше = вниз.</div>
+            `;
+            panel.addEventListener('input', microHandle);
+            panel.addEventListener('change', microHandle);
+            panel.addEventListener('click', (e) => {
+                const action = e.target && e.target.dataset ? e.target.dataset.microAction : '';
+                if (action === 'save') {
+                    const item = microSelected();
+                    if (item && microSetSelected(microRead())) {
+                        renderGrid(); calculate(); saveDraft(); microFill();
+                        if (typeof showToast === 'function') showToast(`Калибровка ${microRotationKey(item.r || 0)}° сохранена`);
+                    }
+                } else if (action === 'reset') {
+                    if (microResetSelected()) {
+                        renderGrid(); calculate(); saveDraft(); microFill();
+                        if (typeof showToast === 'function') showToast('Индивидуальная настройка сброшена');
+                    }
+                } else if (action === 'clear-default') {
+                    const item = microSelected();
+                    if (item) {
+                        microClearTypeDefault(item.type, item.r || 0);
+                        renderGrid(); calculate(); saveDraft(); microFill();
+                        if (typeof showToast === 'function') showToast(`Калибровка ${microRotationKey(item.r || 0)}° сброшена`);
+                    }
+                } else if (action === 'close') microClose();
+            });
+            document.body.appendChild(panel);
+            return panel;
+        }
+        function microFill(){
+            const panel = document.getElementById('microTunerPanel');
+            if (!panel) return;
+            const item = microSelected();
+            const spec = item ? SPECS[item.type] : null;
+            const sub = panel.querySelector('#microSubtitle');
+            if (sub) sub.textContent = item && spec ? `Выбран: ${specDisplayName(spec)} · ${microRotationKey(item.r || 0)}°` : 'Выдели элемент на поле';
+            const m = microGet(item);
+            panel.querySelectorAll('[data-micro-key]').forEach(input => {
+                const key = input.dataset.microKey;
+                if (input.type === 'color') {
+                    input.value = /^#[0-9a-f]{6}$/i.test(m[key] || '') ? m[key] : '#f2f4f7';
+                } else input.value = m[key];
+            });
+            panel.querySelectorAll('[data-micro-num]').forEach(input => {
+                const key = input.dataset.microNum;
+                if (key === 'fillText') input.value = m.fill || '';
+                else if (key === 'strokeText') input.value = m.stroke || '';
+                else input.value = m[key];
+            });
+        }
+        function microRead(){
+            const panel = document.getElementById('microTunerPanel');
+            const out = {};
+            if (!panel) return out;
+            panel.querySelectorAll('[data-micro-key]').forEach(input => {
+                const key = input.dataset.microKey;
+                out[key] = input.type === 'color' ? input.value : Number(input.value);
+            });
+            const fillText = panel.querySelector('[data-micro-num="fillText"]');
+            const strokeText = panel.querySelector('[data-micro-num="strokeText"]');
+            if (fillText && /^#[0-9a-f]{6}$/i.test(fillText.value.trim())) out.fill = fillText.value.trim();
+            if (strokeText && /^#[0-9a-f]{6}$/i.test(strokeText.value.trim())) out.stroke = strokeText.value.trim();
+            if (fillText && fillText.value.trim() === '') out.fill = '';
+            if (strokeText && strokeText.value.trim() === '') out.stroke = '';
+            return out;
+        }
+
+        function microApplySvgOverrides(div, item){
+            if (!div || !item || !item.micro) return;
+            const m = microGet(item);
+            const hasFill = typeof m.fill === 'string' && /^#[0-9a-f]{6}$/i.test(m.fill);
+            const hasStroke = typeof m.stroke === 'string' && /^#[0-9a-f]{6}$/i.test(m.stroke);
+            const lineWidth = Number(m.lineWidth || 0);
+            if (!hasFill && !hasStroke && !lineWidth) return;
+            div.querySelectorAll('svg path, svg line, svg circle, svg rect, svg ellipse, svg polygon, svg polyline').forEach(node => {
+                if (hasFill && node.getAttribute('fill') !== 'none') node.setAttribute('fill', m.fill);
+                if (hasStroke) node.setAttribute('stroke', m.stroke);
+                if (lineWidth) {
+                    node.setAttribute('stroke-width', String(lineWidth));
+                    node.setAttribute('stroke-linecap', 'round');
+                    node.setAttribute('stroke-linejoin', 'round');
+                }
+            });
+        }
+
+        function adminSvgCalibrationForItem(item){
+            const base = microGetTypeDefault(item && item.type, item && item.r);
+            const own = item && item.micro ? item.micro : null;
+            return { ...MICRO_DEFAULTS, ...(base || {}), ...(own || {}) };
+        }
+        function adminSvgCalibrateElement(div, item){
+            if (!div || !item) return;
+            const c = adminSvgCalibrationForItem(item);
+            const svg = div.querySelector('svg');
+            if (!svg) return;
+
+            // Переносим трансформацию внутрь SVG, а не на внешний DOM-контейнер:
+            // так калибровка становится фундаментальной частью визуала элемента.
+            if (!svg.dataset.adminCalibrated) {
+                const ns = 'http://www.w3.org/2000/svg';
+                const g = document.createElementNS(ns, 'g');
+                g.setAttribute('class', 'admin-svg-calibrated-content');
+                while (svg.firstChild) g.appendChild(svg.firstChild);
+                svg.appendChild(g);
+                svg.dataset.adminCalibrated = '1';
+            }
+            const g = svg.querySelector('.admin-svg-calibrated-content');
+            const vb = (svg.getAttribute('viewBox') || '0 0 100 100').trim().split(/\s+/).map(Number);
+            const cx = Number.isFinite(vb[0]) && Number.isFinite(vb[2]) ? vb[0] + vb[2] / 2 : 50;
+            const cy = Number.isFinite(vb[1]) && Number.isFinite(vb[3]) ? vb[1] + vb[3] / 2 : 50;
+            const dx = Number(c.dx || 0);
+            const dy = Number(c.dy || 0);
+            const scale = Number(c.scale || 1);
+            const rotate = Number(c.rotate || 0);
+            const scaleX = Number(c.scaleX || 1);
+            const scaleY = Number(c.scaleY || 1);
+            g.setAttribute('transform', `translate(${dx} ${dy}) rotate(${rotate} ${cx} ${cy}) translate(${cx} ${cy}) scale(${scale * scaleX} ${scale * scaleY}) translate(${-cx} ${-cy})`);
+
+            const hasFill = typeof c.fill === 'string' && /^#[0-9a-f]{6}$/i.test(c.fill);
+            const hasStroke = typeof c.stroke === 'string' && /^#[0-9a-f]{6}$/i.test(c.stroke);
+            const lineWidth = Number(c.lineWidth || 0);
+            if (hasFill || hasStroke || lineWidth) {
+                g.querySelectorAll('path, line, circle, rect, ellipse, polygon, polyline').forEach(node => {
+                    if (hasFill && node.getAttribute('fill') !== 'none') node.setAttribute('fill', c.fill);
+                    if (hasStroke) node.setAttribute('stroke', c.stroke);
+                    if (lineWidth) {
+                        node.setAttribute('stroke-width', String(lineWidth));
+                        node.setAttribute('stroke-linecap', 'round');
+                        node.setAttribute('stroke-linejoin', 'round');
+                    }
+                });
+            }
+            div.style.opacity = String(Number(c.opacity || 1));
+            div.style.filter = Number(c.brightness || 1) !== 1 ? `brightness(${Number(c.brightness)})` : '';
+        }
+        function microApplyLive(){
+            const item = microSelected();
+            if (!item) return;
+            const div = document.querySelector(`.block-item[data-item-id="${String(item.id)}"]`);
+            if (!div) { renderGrid(); return; }
+            adminSvgCalibrateElement(div, item);
+        }
+        function microHandle(e){
+            if (!microSelected()) {
+                if (typeof showToast === 'function') showToast('Сначала выдели элемент на поле');
+                microFill();
+                return;
+            }
+            const key = e.target && (e.target.dataset.microKey || e.target.dataset.microNum);
+            if (!key) return;
+            const panel = document.getElementById('microTunerPanel');
+            if (key === 'fillText' || key === 'strokeText') {
+                const target = key === 'fillText' ? 'fill' : 'stroke';
+                const val = e.target.value.trim();
+                if (/^#[0-9a-f]{6}$/i.test(val)) {
+                    const colorInput = panel.querySelector(`[data-micro-key="${target}"]`);
+                    if (colorInput) colorInput.value = val;
+                }
+            } else {
+                const pair = e.target.dataset.microKey ? panel.querySelector(`[data-micro-num="${key}"]`) : panel.querySelector(`[data-micro-key="${key}"]`);
+                if (pair) pair.value = e.target.value;
+            }
+            microSetSelected(microRead());
+            microApplyLive();
+            saveDraft();
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', microMount);
+        else setTimeout(microMount, 0);
         function drawItems(cellPx){
             const grid = q('blockGrid'); if (!grid) return;
             state.items.forEach(item => {
@@ -8058,16 +8676,13 @@
                 div.style.width = `${((isStraight && item.o === 'h') ? cells : 1) * cellPx - 6}px`;
                 div.style.height = `${((isStraight && item.o === 'v') ? cells : 1) * cellPx - 6}px`;
                 if (spec.kind === 'node') {
-                    const scale = spec.id === 'cornerU003' ? 1.15 : 1.24;
+                    const scale = spec.id === 'cornerU003' ? 1.00 : 1.24;
                     const extra = ((scale - 1) * cellPx) / 2;
                     let shiftX = 0;
                     let shiftY = 0;
                     if (spec.id === 'cornerU003') {
-                        const rr = ((Number(item.r || 0) % 360) + 360) % 360;
-                        if (rr === 0) { shiftX = 7; shiftY = 6; }
-                        else if (rr === 90) { shiftX = -7; shiftY = 6; }
-                        else if (rr === 180) { shiftX = -7; shiftY = -6; }
-                        else if (rr === 270) { shiftX = 7; shiftY = -6; }
+                        // Позиция и масштаб U003 теперь регулируются через панель U003.
+                        shiftX = 0; shiftY = 0;
                     }
                     div.style.left = `${item.x * cellPx + 3 - extra + shiftX}px`;
                     div.style.top = `${item.y * cellPx + 3 - extra + shiftY}px`;
@@ -8079,12 +8694,17 @@
                 else if (spec.kind === 'base') div.innerHTML = baseSvg();
                 else div.textContent = spec.short;
                 if (!isStraight && spec.kind !== 'node' && Number(item.r || 0)) div.style.transform = `rotate(${Number(item.r || 0)}deg)`;
-                div.addEventListener('pointerdown', (event) => startItemDrag(event, item.id));
+                adminSvgCalibrateElement(div, item);
+                div.addEventListener('pointerdown', (event) => {
+                    state.selectedItemId = item.id;
+                    setTimeout(microFill, 0);
+                    startItemDrag(event, item.id);
+                });
                 div.addEventListener('click', (event) => {
                     event.stopPropagation();
                     if (Date.now() < suppressClickUntil) return;
-                    if (state.mode === 'erase') removeItemById(item.id);
-                    else selectItem(item.id);
+                    selectItem(item.id);
+                    setTimeout(microFill, 0);
                     renderGrid(); calculate(); saveDraft();
                 });
                 grid.appendChild(div);
@@ -8241,11 +8861,6 @@
             event.preventDefault();
             event.stopPropagation();
             syncStateFromInputs();
-            if (state.mode === 'erase') {
-                removeItemById(itemId);
-                renderGrid(); calculate(); saveDraft();
-                return;
-            }
             selectItem(itemId);
             const raw = rawGridPointFromEvent(event);
             dragState = { id:itemId, startClientX:event.clientX, startClientY:event.clientY, offsetX:raw.x - item.x, offsetY:raw.y - item.y, moved:false };
@@ -8315,7 +8930,19 @@
             return true;
         }
         function selectItem(id){
+            setTimeout(microFill, 0);
             state.selectedItemId = state.items.some(item => item.id === id) ? id : null;
+        }
+        function deleteSelected(){
+            syncStateFromInputs();
+            const id = state.selectedItemId;
+            if (!id || !removeItemById(id)) {
+                if (typeof showToast === 'function') showToast('Сначала выберите объект на сетке');
+                return false;
+            }
+            renderGrid(); calculate(); saveDraft(); setTimeout(microFill, 0);
+            if (typeof showToast === 'function') showToast('Выделенный объект удалён');
+            return true;
         }
         function rotateSelected(){
             syncStateFromInputs();
@@ -8336,9 +8963,9 @@
         }
         function handleCellClick(x, y){
             syncStateFromInputs();
-            if (state.mode === 'erase') removeAt(x, y);
-            else addItem(state.selected, x, y, state.orientation);
+            addItem(state.selected, x, y, state.orientation);
             renderGrid(); calculate(); saveDraft();
+            setTimeout(microFill, 0);
         }
 
         function roundToHalf(meters){
@@ -8654,33 +9281,56 @@
 
         function renderSummary(res){
             const box = q('blockSummary'); if (!box) return;
-            box.innerHTML = `
-                <div>Прямые фермы</div><div>${metric(res.totalMeters)} м</div>
-                <div>Макс. габарит с U-блоками</div><div>${res.loadCheck && res.loadCheck.spanInfo ? metric(res.loadCheck.spanInfo.maxEffective) + ' м' : '—'}</div>
-                <div>U003 угол 90°</div><div>${res.angles} шт</div>
-                <div>U022 куб 6 направл.</div><div>${res.cubes} шт</div>
-                <div>U017 / U016 Т+крест</div><div>${res.tNodes + res.crosses} шт</div>
-                <div>Прочие угловые U-блоки</div><div>${res.angledNodes + res.multiNodes} шт</div>
-                <div>Всего узлов МДМТ</div><div>${res.nodePieces} шт</div>
-                <div>Торцевые соединения CQ2</div><div>${res.connectorKits || 0} компл.</div>
-                <div>C2-88 / пальцы / шплинты</div><div>${res.cq2Cones || 0} / ${res.cq2Pins || 0} / ${res.cq2Cotters || 0} шт</div>
-                <div>Вес комплекта</div><div>${metric(res.weight)} кг</div>
-                <div>Проверка нагрузки</div><div>${res.loadCheck && res.loadCheck.overall === 'bad' ? 'превышение' : res.loadCheck && res.loadCheck.overall === 'risk' ? 'малый запас' : res.loadCheck && res.loadCheck.overall === 'ok' ? 'OK' : 'нет факт. нагрузки'}</div>
-                <div>Прокат блоков</div><div>${money(res.rental)}</div>
-                <div>Монтаж</div><div>${money(res.install)}</div>
-                <div>Транспорт</div><div>${money(res.transport)}</div>
-                <div><b>ИТОГО</b></div><div><b>${money(res.total)}</b></div>`;
+            const effective = res.loadCheck && res.loadCheck.spanInfo ? metric(res.loadCheck.spanInfo.maxEffective) + ' м' : '—';
+            const rows = [
+                ['Прямые фермы', `${metric(res.totalMeters)} м`, 'метраж'],
+                ['Макс. габарит с U-блоками', effective, 'расчётный'],
+                ['U003 угол 90°', `${res.angles} шт`, 'узлы'],
+                ['U022 куб 6 направл.', `${res.cubes} шт`, 'узлы'],
+                ['U017 / U016 Т+крест', `${res.tNodes + res.crosses} шт`, 'узлы'],
+                ['Прочие угловые U-блоки', `${res.angledNodes + res.multiNodes} шт`, 'узлы'],
+                ['Всего узлов МДМТ', `${res.nodePieces} шт`, 'узлы'],
+                ['Базы / блины', `${res.counts.base || 0} шт · ${metric((res.counts.base || 0) * Number(state.baseWeight || 0))} кг`, 'опоры'],
+                ['Торцевые соединения CQ2', `${res.connectorKits || 0} компл.`, 'крепёж'],
+                ['C2-88 / пальцы / шплинты', `${res.cq2Cones || 0} / ${res.cq2Pins || 0} / ${res.cq2Cotters || 0} шт`, 'крепёж'],
+                ['Вес комплекта', `${metric(res.weight)} кг`, 'масса'],
+                ['Прокат блоков', money(res.rental), 'стоимость'],
+                ['Монтаж', money(res.install), 'стоимость'],
+                ['Транспорт', money(res.transport), 'стоимость']
+            ];
+            box.innerHTML = `<table class="block-calc-table block-calc-summary" aria-label="Итог расчёта блочной комплектации">
+                <caption>Итог комплектации</caption>
+                <thead><tr><th>Позиция</th><th>Значение</th><th>Группа</th></tr></thead>
+                <tbody>${rows.map(row => `<tr><td>${esc(row[0])}</td><td>${row[1]}</td><td class="block-muted-cell">${esc(row[2])}</td></tr>`).join('')}
+                <tr class="block-total-row"><td>ИТОГО</td><td>${money(res.total)}</td><td>к оплате</td></tr></tbody>
+            </table>`;
         }
 
         function renderLoadSummary(load){
-            const box = q('blockLoadSummary'); if (!box) return;
-            if (!load) { box.innerHTML = ''; return; }
+            const box = q('blockLoadSummary');
+            if (!load) {
+                if (box) box.innerHTML = '';
+                return;
+            }
             const table = load.main && load.main.table ? load.main.table : TRUSS_LOAD_TABLES.T29Q;
             const row = load.main ? load.main.row : null;
             const spanLabel = load.span > 0 ? `${metric(load.span)} м` : 'не найден';
             const appliedSpan = row ? `${row.span} м` : '—';
             const statusText = load.overall === 'bad' ? 'Есть превышение / вне таблицы' : load.overall === 'risk' ? 'Нагрузка проходит, но запас меньше 10%' : load.overall === 'ok' ? 'Нагрузка проходит по выбранной таблице' : 'Введите фактическую нагрузку для проверки';
             const statusClass = load.overall === 'bad' ? 'bad' : load.overall === 'risk' ? 'risk' : load.overall === 'ok' ? 'ok' : '';
+            const launcherStatus = q('blockLoadLauncherStatus');
+            if (launcherStatus) {
+                launcherStatus.className = `block-load-launcher-status ${statusClass}`;
+                launcherStatus.textContent = load.overall === 'bad' ? 'превышение' : load.overall === 'risk' ? 'малый запас' : load.overall === 'ok' ? 'OK' : 'не задано';
+            }
+            const launcherSub = q('blockLoadLauncherSub');
+            if (launcherSub) launcherSub.textContent = `${table.label} · пролёт ${spanLabel} · строка ${appliedSpan}`;
+            const modalStatus = q('blockLoadModalStatus');
+            if (modalStatus) {
+                modalStatus.className = `block-load-status block-load-modal-status ${statusClass}`;
+                modalStatus.textContent = statusText;
+            }
+            if (!box) return;
             const rowLine = (label, value) => `<div>${label}</div><div>${value}</div>`;
             let baseRows = '';
             baseRows += rowLine('Таблица', esc(table.label));
@@ -8726,7 +9376,6 @@
             }
 
             box.innerHTML = `
-                <div class="block-load-status ${statusClass}">${statusText}</div>
                 <div class="block-load-sections">
                     <div class="block-load-section"><h5>Ферма / пролёт</h5><div class="block-load-grid">${baseRows}</div></div>
                     <div class="block-load-section"><h5>Распределённая нагрузка</h5><div class="block-load-grid">${distRows}</div></div>
@@ -8784,7 +9433,10 @@
             saveDraft();
             if (typeof showToast === 'function') showToast(state.orientation === 'v' ? 'Блоки: вертикально' : 'Блоки: горизонтально');
         }
-        function setMode(mode){ state.mode = mode; writeValue('blockMode', mode); saveDraft(); }
+        function setMode(){
+            state.mode = 'place';
+            saveDraft();
+        }
 
         window.FEG35BlockConstructor = {
             version: VERSION,
@@ -8792,6 +9444,11 @@
             select,
             rotate,
             rotateSelected,
+            deleteSelected,
+            openPricingModal,
+            closePricingModal,
+            openLoadModal,
+            closeLoadModal,
             setMode,
             template: applyTemplate,
             clear,
