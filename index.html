@@ -6416,7 +6416,7 @@
 
     /* --- FEG Stage PRO 3.4.7: фикс отрисовки ферм на поле и в PDF --- */
     (function(){
-        const VERSION = '3.5.50-light-theme-block-constructor-fix';
+        const VERSION = '3.5.51-file-based-svg-calibration';
 
         function f345InstallStyle(){
             if (document.getElementById('feg345TrussFixStyle')) return;
@@ -7282,7 +7282,7 @@
 
     /* --- FEG Stage PRO 3.5: блочный конструктор ферм --- */
     (function(){
-        const VERSION = '3.5.50-light-theme-block-constructor-fix';
+        const VERSION = '3.5.51-file-based-svg-calibration';
         const STORAGE_KEY = 'fegTrussBlockConstructorDraftV35';
         const DEFAULTS = {
             cols: 24,
@@ -7744,6 +7744,7 @@
             installStyles();
             readOldDefaults();
             loadDraft();
+            microLoadCalibrationFile();
             const host = q('trussModule');
             if (!host) return;
             host.classList.add('truss-clean-v35');
@@ -8445,6 +8446,67 @@ function nodeSvg(item, spec){
         });
         const MICRO_ADMIN_PIN = '7663';
         const MICRO_PIN_SESSION_KEY = 'feg.micro.admin.pin.ok';
+        const MICRO_CALIBRATION_FILE = 'feg_svg_calibration.json';
+        let microFileDefaults = {};
+        let microFileLoadStarted = false;
+        let microFileLoaded = false;
+        function microCleanNumber(value, fallback){
+            const n = Number(value);
+            return Number.isFinite(n) ? n : fallback;
+        }
+        function microNormalizeValue(micro){
+            const raw = { ...MICRO_DEFAULTS, ...(micro || {}) };
+            return {
+                dx: microCleanNumber(raw.dx, 0),
+                dy: microCleanNumber(raw.dy, 0),
+                scale: microCleanNumber(raw.scale, 1),
+                scaleX: microCleanNumber(raw.scaleX, 1),
+                scaleY: microCleanNumber(raw.scaleY, 1),
+                rotate: microCleanNumber(raw.rotate, 0),
+                opacity: microCleanNumber(raw.opacity, 1),
+                brightness: microCleanNumber(raw.brightness, 1),
+                lineWidth: microCleanNumber(raw.lineWidth, 0),
+                fill: /^#[0-9a-f]{6}$/i.test(String(raw.fill || '').trim()) ? String(raw.fill).trim() : '',
+                stroke: /^#[0-9a-f]{6}$/i.test(String(raw.stroke || '').trim()) ? String(raw.stroke).trim() : ''
+            };
+        }
+        function microIsCustom(micro){
+            const m = microNormalizeValue(micro);
+            return Object.keys(MICRO_DEFAULTS).some(key => String(m[key]) !== String(MICRO_DEFAULTS[key]));
+        }
+        function microNormalizeCalibrationFile(data){
+            const source = data && typeof data === 'object' ? (data.items || data.calibration || data.defaults || data) : {};
+            const out = {};
+            Object.entries(source || {}).forEach(([type, rotations]) => {
+                if (!rotations || typeof rotations !== 'object') return;
+                const cleanType = String(type || '').trim();
+                if (!cleanType) return;
+                Object.entries(rotations).forEach(([rotation, micro]) => {
+                    const rot = microRotationKey(rotation);
+                    const value = microNormalizeValue(micro);
+                    if (!microIsCustom(value)) return;
+                    if (!out[cleanType]) out[cleanType] = {};
+                    out[cleanType][rot] = value;
+                });
+            });
+            return out;
+        }
+        function microLoadCalibrationFile(){
+            if (microFileLoadStarted) return;
+            microFileLoadStarted = true;
+            if (typeof fetch !== 'function') return;
+            fetch(`${MICRO_CALIBRATION_FILE}?v=${encodeURIComponent(VERSION)}`, { cache:'no-store' })
+                .then(response => response && response.ok ? response.json() : null)
+                .then(data => {
+                    const next = microNormalizeCalibrationFile(data);
+                    microFileDefaults = next;
+                    microFileLoaded = true;
+                    if (Object.keys(next).length) {
+                        try { renderGrid(); calculate(); microFill(); } catch (e) {}
+                    }
+                })
+                .catch(() => { microFileDefaults = {}; microFileLoaded = false; });
+        }
         function microAdminUnlocked(){
             try { return sessionStorage.getItem(MICRO_PIN_SESSION_KEY) === '1'; }
             catch (e) { return false; }
@@ -8539,21 +8601,79 @@ function nodeSvg(item, spec){
         function microDefaultKey(type, rotation){
             return `feg.micro.default.${String(type || '')}.${microRotationKey(rotation)}`;
         }
-        function microGetTypeDefault(type, rotation){
+        function microGetFileTypeDefault(type, rotation){
+            const typeKey = String(type || '');
+            const rot = microRotationKey(rotation);
+            const value = microFileDefaults && microFileDefaults[typeKey] ? microFileDefaults[typeKey][rot] : null;
+            return value ? microNormalizeValue(value) : null;
+        }
+        function microGetLocalTypeDefault(type, rotation){
             try {
                 const raw = localStorage.getItem(microDefaultKey(type, rotation));
-                return raw ? JSON.parse(raw) : null;
+                return raw ? microNormalizeValue(JSON.parse(raw)) : null;
             } catch (e) {
                 return null;
             }
         }
+        function microGetTypeDefault(type, rotation){
+            const fileValue = microGetFileTypeDefault(type, rotation);
+            const localValue = microGetLocalTypeDefault(type, rotation);
+            if (!fileValue && !localValue) return null;
+            return microNormalizeValue({ ...(fileValue || {}), ...(localValue || {}) });
+        }
         function microSaveTypeDefault(type, rotation, micro){
             if (!type || !micro) return;
-            localStorage.setItem(microDefaultKey(type, rotation), JSON.stringify({ ...micro }));
+            localStorage.setItem(microDefaultKey(type, rotation), JSON.stringify(microNormalizeValue(micro)));
         }
         function microClearTypeDefault(type, rotation){
             if (!type) return;
             localStorage.removeItem(microDefaultKey(type, rotation));
+        }
+        function microKnownCalibrationTypes(){
+            const out = new Set(Object.keys(SPECS || {}).filter(type => SPECS[type] && SPECS[type].kind === 'node'));
+            Object.keys(microFileDefaults || {}).forEach(type => out.add(type));
+            try {
+                for (let i = 0; i < localStorage.length; i += 1) {
+                    const key = localStorage.key(i) || '';
+                    if (!key.startsWith('feg.micro.default.')) continue;
+                    const tail = key.replace('feg.micro.default.', '');
+                    const parts = tail.split('.');
+                    if (parts.length >= 2) out.add(parts.slice(0, -1).join('.'));
+                }
+            } catch (e) {}
+            return Array.from(out).filter(Boolean).sort();
+        }
+        function microCollectCalibrationForFile(){
+            const items = {};
+            const rotations = ['0','90','180','270'];
+            microKnownCalibrationTypes().forEach(type => {
+                rotations.forEach(rotation => {
+                    const fileValue = microGetFileTypeDefault(type, rotation);
+                    const localValue = microGetLocalTypeDefault(type, rotation);
+                    const value = microNormalizeValue({ ...(fileValue || {}), ...(localValue || {}) });
+                    if (!microIsCustom(value)) return;
+                    if (!items[type]) items[type] = {};
+                    items[type][rotation] = value;
+                });
+            });
+            return {
+                schema: 'feg-stage-pro-svg-calibration-v1',
+                version: VERSION,
+                updatedAt: new Date().toISOString(),
+                fileName: MICRO_CALIBRATION_FILE,
+                note: 'Этот файл лежит рядом с index.html. FEG Stage PRO загружает его при старте и применяет как серверную SVG-калибровку. Локальные настройки браузера имеют приоритет только как временный черновик администратора.',
+                items
+            };
+        }
+        function microDownloadCalibrationFile(){
+            const data = microCollectCalibrationForFile();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = MICRO_CALIBRATION_FILE;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            if (typeof showToast === 'function') showToast(`Скачан ${MICRO_CALIBRATION_FILE}. Положи файл рядом с index.html и загрузи на сервер/GitHub.`);
         }
 
         function microCss(item){
@@ -8649,11 +8769,12 @@ function nodeSvg(item, spec){
                 </div>
                 <div class="micro-actions">
                     <button class="primary" type="button" data-micro-action="save">Сохранить</button>
+                    <button type="button" data-micro-action="export-file">Скачать файл калибровки</button>
                     <button type="button" data-micro-action="reset">Сбросить объект</button>
-                    <button type="button" data-micro-action="clear-default">Сбросить калибровку типа</button>
+                    <button type="button" data-micro-action="clear-default">Сбросить локальную калибровку типа</button>
                     <button type="button" data-micro-action="close">Закрыть</button>
                 </div>
-                <div class="micro-hint">Это админ-калибровка SVG выбранного типа и выбранного поворота. Раст. X/Y позволяет отдельно вытянуть рисунок по горизонтали и вертикали. X больше = вправо, Y больше = вниз.</div>
+                <div class="micro-hint">Это админ-калибровка SVG выбранного типа и выбранного поворота. «Сохранить» пишет локальный админ-черновик в браузер. Чтобы калибровка стала частью программы на сервере, нажми «Скачать файл калибровки» и положи <b>feg_svg_calibration.json</b> рядом с index.html перед заливкой на GitHub/сервер.</div>
             `;
             panel.addEventListener('input', microHandle);
             panel.addEventListener('change', microHandle);
@@ -8665,6 +8786,8 @@ function nodeSvg(item, spec){
                         renderGrid(); calculate(); saveDraft(); microFill();
                         if (typeof showToast === 'function') showToast(`Калибровка ${microRotationKey(item.r || 0)}° сохранена`);
                     }
+                } else if (action === 'export-file') {
+                    microDownloadCalibrationFile();
                 } else if (action === 'reset') {
                     if (microResetSelected()) {
                         renderGrid(); calculate(); saveDraft(); microFill();
@@ -8675,7 +8798,7 @@ function nodeSvg(item, spec){
                     if (item) {
                         microClearTypeDefault(item.type, item.r || 0);
                         renderGrid(); calculate(); saveDraft(); microFill();
-                        if (typeof showToast === 'function') showToast(`Калибровка ${microRotationKey(item.r || 0)}° сброшена`);
+                        if (typeof showToast === 'function') showToast(`Локальная калибровка ${microRotationKey(item.r || 0)}° сброшена`);
                     }
                 } else if (action === 'close') microClose();
             });
@@ -9614,6 +9737,7 @@ function nodeSvg(item, spec){
             clear,
             calculate,
             exportJson,
+            exportSvgCalibration: microDownloadCalibrationFile,
             getState: () => JSON.parse(JSON.stringify(state)),
             getResult: () => calculate()
         };

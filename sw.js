@@ -1,11 +1,12 @@
-const CACHE_VERSION = 'FEG_STAGE_PRO_3_5_4';
-const CACHE_NAME = 'feg-stage-pro-v3-5-4-real-connections-visual';
-const RUNTIME_CACHE = 'feg-stage-runtime-v35-3-5-4';
+const CACHE_VERSION = 'FEG_STAGE_PRO_3_5_51';
+const CACHE_NAME = 'feg-stage-pro-v3-5-51-file-svg-calibration';
+const RUNTIME_CACHE = 'feg-stage-runtime-v35-3-5-51';
 
 const CORE_ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './feg_svg_calibration.json',
   './icon-180.png',
   './icon-192.png',
   './icon-512.png'
