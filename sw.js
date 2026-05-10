@@ -1,12 +1,40 @@
-const CACHE_VERSION = 'FEG_STAGE_PRO_3_5_62';
-const CACHE_NAME = 'feg-stage-pro-v3-5-62-combined-single-transport';
-const RUNTIME_CACHE = 'feg-stage-runtime-v35-3-5-62';
+const CACHE_VERSION = 'FEG_STAGE_PRO_3_7_2';
+const CACHE_NAME = 'feg-stage-pro-v3-7-2-module-cleanup-bundle';
+const RUNTIME_CACHE = 'feg-stage-runtime-v37-3-7-2';
 
 const CORE_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './feg_svg_calibration.json',
+  './src/legacy-app.js',
+  './src/README.md',
+  './src/modules/index.js',
+  './src/modules/FormatUtils.js',
+  './src/modules/DomUtils.js',
+  './src/modules/AppBootstrap.js',
+  './src/modules/TrussBootstrap.js',
+  './src/modules/TrussState.js',
+  './src/modules/TrussProjectsUI.js',
+  './src/modules/StageGridState.js',
+  './src/modules/StageCalculator.js',
+  './src/modules/TrussBlockConstructor.js',
+  './src/modules/LoadChecker.js',
+  './src/modules/PdfGenerator.js',
+  './src/modules/TransportSettings.js',
+  './src/modules/AppSettings.js',
+  './src/modules/SupabaseStorage.js',
+  './src/modules/ProjectStorage.js',
+  './src/modules/ProjectManager.js',
+  './src/modules/ClientsStorage.js',
+  './src/modules/ClientsManager.js',
+  './src/modules/ClientsUI.js',
+  './src/modules/PwaManager.js',
+  './src/modules/NavigationManager.js',
+  './src/modules/ModalManager.js',
+  './src/modules/ToastManager.js',
+  './src/modules/CalibrationManager.js',
+  './src/modules/PriceWeightSettings.js',
   './icon-180.png',
   './icon-192.png',
   './icon-512.png'

@@ -1,6 +1,6 @@
 {
-  "name": "FEG Stage PRO v3.5.62",
-  "short_name": "FEG PRO 3.5.62",
+  "name": "FEG Stage PRO v3.6.17",
+  "short_name": "FEG PRO 3.6.17",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#080c10",
@@ -22,5 +22,5 @@
       "type": "image/png"
     }
   ],
-  "description": "FEG Stage PRO 3.5.62: общий транспорт в объединённом КП сцена+фермы, сцены, блочный конструктор ферм, PDF-схемы, файловая SVG-калибровка, нагрузки T29/T39, клиенты и Supabase."
+  "description": "FEG Stage PRO 3.6.17: перенос action helpers блочного конструктора в модуль TrussBlockConstructor."
 }
