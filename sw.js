@@ -1,6 +1,6 @@
-const CACHE_VERSION = 'FEG_STAGE_PRO_3_5_54';
-const CACHE_NAME = 'feg-stage-pro-v3-5-53-mobile-layout-fix';
-const RUNTIME_CACHE = 'feg-stage-runtime-v35-3-5-53';
+const CACHE_VERSION = 'FEG_STAGE_PRO_3_5_55';
+const CACHE_NAME = 'feg-stage-pro-v3-5-55-compact-scheme-buttons';
+const RUNTIME_CACHE = 'feg-stage-runtime-v35-3-5-55';
 
 const CORE_ASSETS = [
   './',
