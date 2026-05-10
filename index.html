@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>FEG Stage PRO 3.5.58 — sorted object menus</title>
+    <title>FEG Stage PRO 3.5.62 — combined single transport</title>
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
@@ -1597,6 +1597,23 @@
         .page-tab:not(.active):hover {
             opacity: 1;
         }
+
+        .app-tools-panel {
+            flex: 1 1 100%;
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .app-tools-panel button {
+            min-height: 38px;
+            padding-inline: 14px;
+            font-weight: 850;
+        }
+        body.page-clients .transport-shared-button {
+            display: none !important;
+        }
         #trussPage .truss-section { margin-top: 0; }
         .page-intro-card {
             margin-bottom: 16px;
@@ -1868,6 +1885,10 @@
         <button id="navStageBtn" type="button" class="btn-primary page-tab active" onclick="setAppPage('stage')">▦ Сцена</button>
         <button id="navClientsBtn" type="button" class="btn-secondary page-tab" onclick="setAppPage('clients')">◉ Клиенты</button>
         <button id="navTrussBtn" type="button" class="btn-secondary page-tab" onclick="setAppPage('truss')">△ Фермы / конструкции</button>
+        <div class="app-tools-panel" aria-label="Общие инструменты приложения">
+            <button type="button" class="btn-secondary" onclick="openAppSettingsModal()">⚙ Настройки приложения</button>
+            <button type="button" class="btn-secondary transport-shared-button" onclick="openTransportModal()">🚚 Транспорт</button>
+        </div>
     </div>
 
     <section id="stagePage" class="app-page active-page" aria-label="Страница сцены">
@@ -1949,7 +1970,9 @@
                 <button onclick="openPdfPreview()" class="btn-secondary wide-button">▣ Технический PDF / отправить</button>
                 <button onclick="openClientPdfPreview()" class="btn-primary wide-button">◈ Смета клиенту PDF</button>
                 <button onclick="openCombinedClientPdfPreview()" class="btn-primary wide-button">◈ Общее КП: сцена + фермы</button>
-                <button onclick="openSettingsModal()" class="btn-secondary wide-button">⚙ Настройки</button>
+                <button onclick="openTransportModal()" class="btn-secondary wide-button transport-shared-button">🚚 Транспорт</button>
+                <button onclick="openAppSettingsModal()" class="btn-secondary wide-button">⚙ Настройки приложения</button>
+                <button onclick="openSettingsModal()" class="btn-secondary wide-button">▤ Сцена: цены / вес</button>
                 <button onclick="forceServerReload()" class="btn-secondary wide-button mobile-refresh-button">↻ Обновить с сервера</button>
                 <button id="installBtn" class="btn-primary wide-button" style="display:none">Установить приложение</button>
             </section>
@@ -2004,87 +2027,7 @@
         </div>
     </section>
 
-    <section id="trussPage" class="app-page" aria-label="Страница ферм">
-    <section id="trussModule" class="truss-section">
-        <div class="truss-header-row">
-            <div>
-                <h3>Конструктор ферм / конструкций</h3>
-                <div class="truss-subtitle">Первый модуль для сборки порталов, рам и экранных конструкций из прямых ферм. Расчёт является комплектовочной ведомостью, не инженерной проверкой нагрузок.</div>
-            </div>
-            <button type="button" class="btn-secondary" onclick="clearTrussConfirm()">⌫ Очистить фермы</button>
-        </div>
-
-        <div class="truss-layout">
-            <div class="truss-card">
-                <div class="truss-controls">
-                    <div><label for="trussCols">Сетка Ш</label><input id="trussCols" type="number" min="4" max="40" value="16" step="1"></div>
-                    <div><label for="trussRows">Сетка Г</label><input id="trussRows" type="number" min="4" max="30" value="12" step="1"></div>
-                    <div><label for="trussCellMeters">Клетка, м</label><select id="trussCellMeters"><option value="0.5" selected>0.5 м</option><option value="1">1 м</option></select></div>
-                    <div><label for="trussZoom">Масштаб</label><input id="trussZoom" type="range" min="60" max="180" value="100" step="5"></div>
-                    <div><label for="trussDrawDir">Направление</label><select id="trussDrawDir"><option value="h" selected>Горизонталь</option><option value="v">Вертикаль</option></select></div>
-                    <div><label for="trussDrawMode">Режим</label><select id="trussDrawMode"><option value="draw" selected>Рисовать</option><option value="erase">Стереть</option><option value="toggle">Переключать</option></select></div>
-                </div>
-
-                <div class="truss-toolbar">
-                    <button type="button" class="btn-secondary" onclick="applyTrussPortalTemplate()">Портал</button>
-                    <button type="button" class="btn-secondary" onclick="applyTrussRectangleTemplate()">Рама</button>
-                    <button type="button" class="btn-secondary" onclick="rotateTrussDirection()">↔ / ↕</button>
-                    <button type="button" class="btn-secondary" onclick="clearTrussConfirm()">Очистить</button>
-                </div>
-
-                <div class="truss-grid-wrap">
-                    <div id="trussGrid" class="truss-grid" aria-label="Редактор ферм"></div>
-                </div>
-                <div class="truss-caption">
-                    <span>Клик/касание по клетке добавляет участок фермы в выбранном направлении. Протяжка пальцем или мышкой рисует быстро.</span>
-                    <span id="trussCountLabel">Участков: 0</span>
-                </div>
-            </div>
-
-            <aside class="truss-card">
-                <h3 style="margin-top:0">Параметры фермы</h3>
-                <div class="truss-side-grid">
-                    <div class="full"><label for="trussProjectName">Проект</label><input id="trussProjectName" placeholder="Портал, LED-экран, задник"></div>
-                    <div class="full"><label for="trussClientName">Клиент</label><input id="trussClientName" list="clientDatalist" placeholder="Клиент / компания"></div>
-                    <div><label for="trussWidthM">Ширина шаблона, м</label><input id="trussWidthM" type="number" min="0.5" step="0.5" value="6"></div>
-                    <div><label for="trussHeightM">Высота шаблона, м</label><input id="trussHeightM" type="number" min="0.5" step="0.5" value="3"></div>
-                    <div><label for="trussSupportCount">Стойки / базы, шт</label><input id="trussSupportCount" type="number" min="0" step="1" value="2"></div>
-                    <div><label for="trussInstallCost">Монтаж, ₽</label><input id="trussInstallCost" type="number" min="0" step="500" value="5000"></div>
-                    <div><label for="trussPricePerMeter">Прокат фермы, ₽/м</label><input id="trussPricePerMeter" type="number" min="0" step="50" value="600"></div>
-                    <div><label for="trussCornerPrice">Угол / куб, ₽</label><input id="trussCornerPrice" type="number" min="0" step="50" value="300"></div>
-                    <div><label for="trussUprightPrice">Стойка, ₽/шт</label><input id="trussUprightPrice" type="number" min="0" step="50" value="500"></div>
-                    <div><label for="trussBasePrice">База, ₽/шт</label><input id="trussBasePrice" type="number" min="0" step="50" value="300"></div>
-                    <div><label for="trussWeightPerMeter">Вес фермы, кг/м</label><input id="trussWeightPerMeter" type="number" min="0" step="0.1" value="6"></div>
-                    <div><label for="trussCornerWeight">Угол / куб, кг</label><input id="trussCornerWeight" type="number" min="0" step="0.1" value="4"></div>
-                    <div><label for="trussUprightWeight">Стойка, кг</label><input id="trussUprightWeight" type="number" min="0" step="0.1" value="8"></div>
-                    <div><label for="trussBaseWeight">База, кг</label><input id="trussBaseWeight" type="number" min="0" step="0.1" value="12"></div>
-                </div>
-                <div id="trussResult" class="truss-result-grid"></div>
-                <table class="truss-piece-table" aria-label="Ведомость ферм">
-                    <thead><tr><th>Элемент</th><th>Кол-во</th></tr></thead>
-                    <tbody id="trussPiecesBody"></tbody>
-                </table>
-                <div class="truss-actions-grid">
-                    <button type="button" class="btn-success full" onclick="saveTrussProject()">▱ Сохранить ферму</button>
-                    <button type="button" class="btn-secondary" onclick="exportTrussJson()">⇩ JSON</button>
-                    <button type="button" class="btn-secondary" onclick="triggerTrussImport()">⇧ Импорт</button>
-                    <button type="button" class="btn-secondary" onclick="openTrussTechPdfPreview()">▣ Тех. PDF / отправить</button>
-                    <button type="button" class="btn-primary" onclick="openTrussClientPdfPreview()">◈ КП PDF</button>
-                    <button type="button" class="btn-primary full" onclick="openCombinedClientPdfPreview()">◈ Общее КП: сцена + фермы</button>
-                    <button type="button" class="btn-secondary" onclick="saveCurrentTrussToCloud()">☁ В облако</button>
-                    <button type="button" class="btn-secondary" onclick="loadTrussesFromCloud()">☁ Из облака</button>
-                </div>
-                <input id="trussImportInput" type="file" accept=".json,application/json" style="display:none" onchange="importTrussJsonFromInput(event)">
-                <div class="truss-warning">Важно: расчёт ферм показывает комплектацию, стоимость и вес. Допустимые нагрузки, подвес, балласт, ветровые нагрузки и безопасность конструкции должны проверяться по паспортам производителя и/или ответственным инженером.</div>
-            </aside>
-        </div>
-
-        <div class="truss-projects">
-            <h3>Сохранённые ферменные проекты</h3>
-            <div id="trussProjectsList"></div>
-        </div>
-    </section>
-    </section>
+    <section id="trussPage" class="app-page" aria-label="Страница ферм"></section>
 
 </div>
 
@@ -2112,36 +2055,12 @@
 </div>
 
 <div id="weightsModal" class="modal-backdrop" aria-hidden="true">
-    <div class="weights-modal settings-modal" role="dialog" aria-modal="true" aria-label="Настройки">
+    <div class="weights-modal settings-modal" role="dialog" aria-modal="true" aria-label="Настройки сцены">
         <div class="pdf-modal-header">
-            <div class="pdf-modal-title">Настройки интерфейса, стоимости, конструкции и веса</div>
+            <div class="pdf-modal-title">▤ Настройки сцены: стоимость, конструкция и вес</div>
             <button type="button" class="close-modal" onclick="closeSettingsModal()" aria-label="Закрыть">×</button>
         </div>
         <div class="weights-modal-body">
-            <div class="settings-section-title">Интерфейс</div>
-            <div class="weights-grid settings-grid">
-                <label for="appTheme">Тема оформления</label>
-                <select id="appTheme">
-                    <option value="dark" selected>Тёмная</option>
-                    <option value="light">Светлая строгая</option>
-                </select>
-            </div>
-
-            <div class="settings-section-title">Облако / Supabase</div>
-            <div class="weights-grid settings-grid">
-                <label for="cloudUrl">Supabase URL</label>
-                <input id="cloudUrl" type="text" placeholder="https://xxxx.supabase.co" style="text-align:left">
-
-                <label for="cloudAnonKey">Anon public key</label>
-                <input id="cloudAnonKey" type="password" placeholder="eyJ..." style="text-align:left">
-
-                <label for="cloudWorkspaceKey">Ключ пространства</label>
-                <input id="cloudWorkspaceKey" type="text" placeholder="например: feg-main" style="text-align:left">
-            </div>
-            <div class="cloud-status-line">
-                Для облака нужен проект Supabase и таблица <strong>projects</strong>. Ключ пространства связывает проекты между устройствами.
-            </div>
-
             <div class="settings-section-title">Стоимость</div>
             <div class="weights-grid settings-grid">
                 <label for="priceModule">Цена за модуль, ₽</label>
@@ -2170,24 +2089,6 @@
                 <input id="stageHeight" type="number" min="0" step="1" value="60">
             </div>
 
-            <div class="settings-section-title">Транспорт</div>
-            <div class="weights-grid settings-grid">
-                <label for="transportType">Тип доставки</label>
-                <select id="transportType">
-                    <option value="city" selected>По городу</option>
-                    <option value="intercity">Межгород</option>
-                </select>
-
-                <label for="transportCityPrice">По городу, фикс. цена ₽</label>
-                <input id="transportCityPrice" type="number" min="0" step="500" value="0">
-
-                <label for="transportKmPrice">Межгород, ₽ за 1 км</label>
-                <input id="transportKmPrice" type="number" min="0" step="10" value="0">
-
-                <label for="transportKm">Межгород, количество км</label>
-                <input id="transportKm" type="number" min="0" step="1" value="0">
-            </div>
-
             <div class="settings-section-title">Вес позиций, кг/шт</div>
             <div class="weights-grid">
                 <label for="weightSheet">Лист настила / модуль</label>
@@ -2212,12 +2113,83 @@
                 <input id="weightStud" type="number" min="0" step="0.1" value="1.5">
             </div>
             <div class="weights-modal-note">
-                Настройки сохраняются в браузере и используются в расчёте, сохранённых заказах, техническом PDF и клиентской смете. Облачные настройки нужны для сохранения проектов на Supabase. Тема оформления применяется только к интерфейсу приложения. Пятки пока считаются количеством, без веса.
+                Настройки сцены сохраняются в браузере и используются в расчёте сцены, сохранённых заказах, техническом PDF и клиентской смете. Тема, Supabase и транспорт вынесены в отдельные общие окна приложения. Пятки пока считаются количеством, без веса.
             </div>
         </div>
         <div class="pdf-modal-actions">
             <button type="button" class="btn-primary" onclick="saveSettingsFromModal()">Сохранить настройки</button>
             <button type="button" class="btn-secondary" onclick="resetWeightsToDefault()">Вес по умолчанию</button>
+        </div>
+    </div>
+</div>
+
+<div id="appSettingsModal" class="modal-backdrop" aria-hidden="true">
+    <div class="weights-modal settings-modal" role="dialog" aria-modal="true" aria-label="Общие настройки приложения">
+        <div class="pdf-modal-header">
+            <div class="pdf-modal-title">⚙ Общие настройки приложения</div>
+            <button type="button" class="close-modal" onclick="closeAppSettingsModal()" aria-label="Закрыть">×</button>
+        </div>
+        <div class="weights-modal-body">
+            <div class="settings-section-title">Интерфейс</div>
+            <div class="weights-grid settings-grid">
+                <label for="appTheme">Тема оформления</label>
+                <select id="appTheme">
+                    <option value="dark" selected>Тёмная</option>
+                    <option value="light">Светлая строгая</option>
+                </select>
+            </div>
+
+            <div class="settings-section-title">База данных / Supabase</div>
+            <div class="weights-grid settings-grid">
+                <label for="cloudUrl">Supabase URL</label>
+                <input id="cloudUrl" type="text" placeholder="https://xxxx.supabase.co" style="text-align:left">
+
+                <label for="cloudAnonKey">Anon public key</label>
+                <input id="cloudAnonKey" type="password" placeholder="eyJ..." style="text-align:left">
+
+                <label for="cloudWorkspaceKey">Ключ пространства</label>
+                <input id="cloudWorkspaceKey" type="text" placeholder="например: feg-main" style="text-align:left">
+            </div>
+            <div class="cloud-status-line">
+                Эти настройки общие для сцен, ферм и базы клиентов. Для облака нужен проект Supabase и таблица <strong>projects</strong>; ключ пространства связывает данные между устройствами.
+            </div>
+        </div>
+        <div class="pdf-modal-actions">
+            <button type="button" class="btn-primary" onclick="saveAppSettingsFromModal()">Сохранить настройки</button>
+        </div>
+    </div>
+</div>
+
+<div id="transportModal" class="modal-backdrop" aria-hidden="true">
+    <div class="weights-modal settings-modal" role="dialog" aria-modal="true" aria-label="Транспорт">
+        <div class="pdf-modal-header">
+            <div class="pdf-modal-title">🚚 Транспорт</div>
+            <button type="button" class="close-modal" onclick="closeTransportModal()" aria-label="Закрыть">×</button>
+        </div>
+        <div class="weights-modal-body">
+            <div class="settings-section-title">Расчёт доставки</div>
+            <div class="weights-grid settings-grid">
+                <label for="transportType">Тип доставки</label>
+                <select id="transportType">
+                    <option value="city" selected>По городу</option>
+                    <option value="intercity">Межгород</option>
+                </select>
+
+                <label for="transportCityPrice">По городу, фикс. цена ₽</label>
+                <input id="transportCityPrice" type="number" min="0" step="500" value="0">
+
+                <label for="transportKmPrice">Межгород, ₽ за 1 км</label>
+                <input id="transportKmPrice" type="number" min="0" step="10" value="0">
+
+                <label for="transportKm">Межгород, количество км</label>
+                <input id="transportKm" type="number" min="0" step="1" value="0">
+            </div>
+            <div class="weights-modal-note">
+                Транспорт используется в расчёте сцены, в клиентских PDF и в общей смете «Сцена + фермы». Кнопка доступна на вкладках сцены и ферм.
+            </div>
+        </div>
+        <div class="pdf-modal-actions">
+            <button type="button" class="btn-primary" onclick="saveTransportSettingsFromModal()">Сохранить транспорт</button>
         </div>
     </div>
 </div>
@@ -2302,6 +2274,8 @@
     const gridColsInput = document.getElementById('gridCols');
     const gridRowsInput = document.getElementById('gridRows');
     const weightsModal = document.getElementById('weightsModal');
+    const appSettingsModal = document.getElementById('appSettingsModal');
+    const transportModal = document.getElementById('transportModal');
     const appThemeSelect = document.getElementById('appTheme');
     const stageHeightInput = document.getElementById('stageHeight');
     const transportTypeSelect = document.getElementById('transportType');
@@ -2578,7 +2552,6 @@
     }
 
     function syncWeightInputs() {
-        syncThemeInput();
         const map = {
             weightSheet: 'sheet',
             weightColumnLow: 'column_low',
@@ -2594,8 +2567,6 @@
         });
         if (stageHeightInput) stageHeightInput.value = Math.round(getStageHeightValue() * 100);
         syncPricingInputs();
-        syncTransportInputs();
-        syncCloudInputs();
     }
 
     function readStageHeightFromInput() {
@@ -2622,6 +2593,57 @@
         return next;
     }
 
+    function openAppSettingsModal() {
+        syncThemeInput();
+        syncCloudInputs();
+        if (appSettingsModal) {
+            appSettingsModal.classList.add('open');
+            appSettingsModal.setAttribute('aria-hidden', 'false');
+        }
+    }
+
+    function closeAppSettingsModal() {
+        if (appSettingsModal) {
+            appSettingsModal.classList.remove('open');
+            appSettingsModal.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    function saveAppSettingsFromModal() {
+        appTheme = readThemeFromInput();
+        saveCloudSettings();
+        applyAppTheme(appTheme);
+        localStorage.setItem('appTheme', appTheme);
+        closeAppSettingsModal();
+        showToast('Настройки приложения сохранены');
+    }
+
+    function openTransportModal() {
+        syncTransportInputs();
+        if (transportModal) {
+            transportModal.classList.add('open');
+            transportModal.setAttribute('aria-hidden', 'false');
+        }
+    }
+
+    function closeTransportModal() {
+        if (transportModal) {
+            transportModal.classList.remove('open');
+            transportModal.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    function saveTransportSettingsFromModal() {
+        transportSettings = readTransportFromInputs();
+        localStorage.setItem('transportSettings', JSON.stringify(transportSettings));
+        closeTransportModal();
+        if (typeof calc === 'function') calc(false);
+        if (window.FEG35BlockConstructor && typeof window.FEG35BlockConstructor.calculate === 'function') {
+            window.FEG35BlockConstructor.calculate();
+        }
+        showToast('Транспорт сохранён');
+    }
+
     function openSettingsModal() {
         syncWeightInputs();
         weightsModal.classList.add('open');
@@ -2640,18 +2662,12 @@
         itemWeights = readWeightsFromInputs();
         stageHeightM = readStageHeightFromInput();
         pricingSettings = readPricingFromInputs();
-        transportSettings = readTransportFromInputs();
-        appTheme = readThemeFromInput();
-        saveCloudSettings();
-        applyAppTheme(appTheme);
         localStorage.setItem('itemWeights', JSON.stringify(itemWeights));
         localStorage.setItem('stageHeightM', String(stageHeightM));
         localStorage.setItem('pricingSettings', JSON.stringify(pricingSettings));
-        localStorage.setItem('transportSettings', JSON.stringify(transportSettings));
-        localStorage.setItem('appTheme', appTheme);
         closeSettingsModal();
         calc(false);
-        showToast('Настройки сохранены');
+        showToast('Настройки сцены сохранены');
     }
 
     function saveWeightsFromModal() { saveSettingsFromModal(); }
@@ -3098,11 +3114,21 @@
     }
 
     function createPdfMiniGrid() {
-        const keys = new Set(selectedModules);
-        const pdfCellSize = Math.max(4, Math.min(11, Math.floor(235 / Math.max(1, gridColsCount))));
-        let html = `<div class="pdf-mini-grid" style="--pdf-grid-cols:${gridColsCount}; --pdf-cell-size:${pdfCellSize}px;">`;
-        for (let y = 0; y < gridRowsCount; y++) {
-            for (let x = 0; x < gridColsCount; x++) {
+        const modules = getSelectedModuleList();
+        if (!modules.length) return '<div style="font-size:12px;color:#69727d;">Схема не выбрана</div>';
+        const keys = new Set(modules.map(m => moduleKey(m.x, m.y)));
+        const xs = modules.map(m => m.x);
+        const ys = modules.map(m => m.y);
+        const minX = Math.min(...xs);
+        const maxX = Math.max(...xs);
+        const minY = Math.min(...ys);
+        const maxY = Math.max(...ys);
+        const cols = maxX - minX + 1;
+        const rows = maxY - minY + 1;
+        const pdfCellSize = Math.max(6, Math.min(18, Math.floor(245 / Math.max(cols, rows, 1))));
+        let html = `<div class="pdf-mini-grid" style="--pdf-grid-cols:${cols}; --pdf-cell-size:${pdfCellSize}px;">`;
+        for (let y = minY; y <= maxY; y++) {
+            for (let x = minX; x <= maxX; x++) {
                 html += `<div class="pdf-mini-cell ${keys.has(moduleKey(x, y)) ? 'active' : ''}"></div>`;
             }
         }
@@ -3256,7 +3282,7 @@
                 <div class="section-title">1. Схема конфигурации сцены</div>
                 <div class="scheme-row">
                     <div>
-                        <div style="font-size:12px; margin-bottom:6px;"><strong>Сетка ${gridColsCount}×${gridRowsCount}.</strong> Передний ряд — нижняя часть схемы.</div>
+                        <div style="font-size:12px; margin-bottom:6px;"><strong>Схема обрезана по фактической конструкции.</strong> Передний ряд — нижняя часть схемы.</div>
                         ${createPdfMiniGrid()}
                     </div>
                     <div class="notes">
@@ -4174,9 +4200,23 @@
             if (event.target === weightsModal) closeWeightsModal();
         });
     }
+    if (appSettingsModal) {
+        appSettingsModal.addEventListener('click', (event) => {
+            if (event.target === appSettingsModal) closeAppSettingsModal();
+        });
+    }
+    if (transportModal) {
+        transportModal.addEventListener('click', (event) => {
+            if (event.target === transportModal) closeTransportModal();
+        });
+    }
 
     window.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') closePdfPreview();
+        if (event.key !== 'Escape') return;
+        closePdfPreview();
+        closeWeightsModal();
+        closeAppSettingsModal();
+        closeTransportModal();
     });
 
 
@@ -4646,7 +4686,7 @@
         Object.entries({ trussSupportCount:p.supportCount, trussInstallCost:p.installCost, trussPricePerMeter:p.pricePerMeter, trussCornerPrice:p.cornerPrice, trussUprightPrice:p.uprightPrice, trussBasePrice:p.basePrice, trussWeightPerMeter:p.weightPerMeter, trussCornerWeight:p.cornerWeight, trussUprightWeight:p.uprightWeight, trussBaseWeight:p.baseWeight, trussWidthM:p.widthM, trussHeightM:p.heightM }).forEach(([id,val]) => { if (val !== undefined) setTrussNumber(id,val); });
         trussEditingId = project.id;
         saveTrussDraftSettings(); renderTrussGrid(); calculateTruss();
-        document.getElementById('trussModule').scrollIntoView({behavior:'smooth', block:'start'});
+        (document.getElementById('blockTrussModule') || document.getElementById('trussPage') || document.body).scrollIntoView({behavior:'smooth', block:'start'});
         showToast('Ферменный проект открыт');
     }
 
@@ -5828,7 +5868,7 @@
             if (!p.supportCount) setTrussNumber('trussSupportCount', 4);
             trussEditingId = project.id;
             saveTrussDraftSettings(); renderTrussGrid(); calculateTruss();
-            const module = document.getElementById('trussModule'); if (module) module.scrollIntoView({behavior:'smooth', block:'start'});
+            const module = document.getElementById('blockTrussModule') || document.getElementById('trussPage'); if (module) module.scrollIntoView({behavior:'smooth', block:'start'});
             showToast('3D ферменный проект открыт');
             return;
         }
@@ -6416,7 +6456,7 @@
 
     /* --- FEG Stage PRO 3.4.7: фикс отрисовки ферм на поле и в PDF --- */
     (function(){
-        const VERSION = '3.5.58-sorted-object-menus';
+        const VERSION = '3.5.62-combined-single-transport';
 
         function f345InstallStyle(){
             if (document.getElementById('feg345TrussFixStyle')) return;
@@ -7282,7 +7322,7 @@
 
     /* --- FEG Stage PRO 3.5: блочный конструктор ферм --- */
     (function(){
-        const VERSION = '3.5.58-sorted-object-menus';
+        const VERSION = '3.5.62-combined-single-transport';
         const STORAGE_KEY = 'fegTrussBlockConstructorDraftV35';
         const DEFAULTS = {
             cols: 24,
@@ -7638,6 +7678,9 @@
                 .block-load-launcher-status.ok { color:#bff1d1; border-color:rgba(46,139,87,.65); background:rgba(46,139,87,.16); }
                 .block-load-launcher-status.risk { color:#ffe3a3; border-color:rgba(255,196,87,.75); background:rgba(255,196,87,.14); }
                 .block-load-launcher-status.bad { color:#ffd0d0; border-color:rgba(255,105,105,.8); background:rgba(255,105,105,.16); }
+                .block-pdf-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:10px 0; }
+                .block-pdf-actions .full { grid-column:1/-1; }
+                .block-pdf-actions button { min-height:40px; font-weight:900; }
                 .block-load-modal-backdrop { z-index: 2300; }
                 .block-load-modal { width:min(1080px, 100%); max-height:92vh; background:#121a22; border:1px solid var(--line); border-radius:28px; box-shadow:0 24px 80px rgba(15,23,42,.44); overflow:hidden; display:flex; flex-direction:column; }
                 .block-load-modal-body { padding:16px; overflow:auto; display:grid; gap:14px; }
@@ -7718,6 +7761,7 @@
                 body.theme-light .block-calc-table .block-total-row td { color:#4c371f; background:#eadcc8; }
                 body.theme-light .block-load-launcher-button,
                 body.theme-light .block-settings-launcher-button { background:#fffaf2; border-color:#d7c9b5; color:#201c17; }
+                body.theme-light .block-pdf-actions button { border-color:#d7c9b5; }
                 body.theme-light .block-load-launcher-status { color:#5b432d; background:#f4ecde; border-color:#d7c9b5; }
                 body.theme-light .block-load-grid, body.theme-light .block-load-panel, body.theme-light .block-load-section, body.theme-light .block-load-hero-card, body.theme-light .block-load-note, body.theme-light .block-load-modal { border-color:#d7c9b5; }
                 body.theme-light .block-load-modal { background:linear-gradient(180deg, #ffffff, #f6f1e8); color:#201c17; }
@@ -7771,6 +7815,19 @@
                         border-radius:999px !important;
                         font-size:.82rem !important;
                         white-space:nowrap !important;
+                    }
+                    .app-tools-panel {
+                        flex:1 0 100% !important;
+                        margin-top:2px !important;
+                        gap:6px !important;
+                    }
+                    .app-tools-panel button {
+                        flex:1 0 auto !important;
+                        min-width:max-content !important;
+                        min-height:38px !important;
+                        padding:0 10px !important;
+                        border-radius:999px !important;
+                        font-size:.78rem !important;
                     }
                     .page-tab.active::after { display:none !important; }
                     #trussPage .truss-section,
@@ -7973,7 +8030,7 @@
                     .block-truss-toolbar .block-icon-button { font-size:1.08rem !important; }
                     .block-load-launcher-status { max-width:92px; overflow:hidden; text-overflow:ellipsis; }
                 }
-                /* v3.5.58: группы объектов пересортированы по рабочей логике */
+                /* v3.5.59: старый режим удалён, PDF комплект перенесён на блочный конструктор */
                 .block-library { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; align-items:start; margin:10px 0; }
                 .block-object-group { min-width:0; border-radius:16px; border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.035); overflow:hidden; box-shadow:inset 0 1px 0 rgba(255,255,255,.035); }
                 .block-object-group[open] { background:rgba(255,255,255,.055); }
@@ -8026,8 +8083,10 @@
             readOldDefaults();
             loadDraft();
             microLoadCalibrationFile();
-            const host = q('trussModule');
+            const host = q('trussPage') || q('trussModule');
             if (!host) return;
+            const legacyModule = q('trussModule');
+            if (legacyModule && legacyModule !== host) legacyModule.remove();
             host.classList.add('truss-clean-v35');
             host.querySelectorAll(':scope > .truss-header-row, :scope > .truss-layout, :scope > .truss-projects').forEach(el => el.remove());
             const html = `
@@ -8035,14 +8094,14 @@
                     <div class="block-truss-header">
                         <div>
                             <h3>Блочный конструктор ферм</h3>
-                            <div class="truss-subtitle">Чистый рабочий экран: библиотека блоков, поле сборки, ведомость, стоимость и проверка нагрузки без старого режима рисования 2D/3D.</div>
+                            <div class="truss-subtitle">Чистый рабочий экран: библиотека блоков, поле сборки, ведомость, стоимость, PDF и проверка нагрузки без старого режима рисования 2D/3D.</div>
                         </div>
                         <button type="button" class="btn-secondary" onclick="FEG35BlockConstructor.clear(true)">⌫ Очистить блоки</button>
                     </div>
                     <div class="block-project-panel">
                         <div><label for="trussProjectName">Проект</label><input id="trussProjectName" placeholder="Портал, LED-экран, задник"></div>
                         <div><label for="trussClientName">Клиент</label><input id="trussClientName" list="clientDatalist" placeholder="Клиент / компания"></div>
-                        <div><label>Уборка</label><div class="block-clean-note">Старый режим рисования скрыт. Активен только блочный конструктор.</div></div>
+                        <div><label>Уборка</label><div class="block-clean-note">Старый режим рисования удалён. Активен только блочный конструктор.</div></div>
                     </div>
                     <div class="block-truss-layout">
                         <div class="block-truss-card">
@@ -8096,6 +8155,13 @@
                                     <span class="block-load-launcher-main"><strong>⚖ Проверка нагрузки</strong><span id="blockLoadLauncherSub">Таблицы MDM T29/T39 · пролёт, точка, консоль</span></span>
                                     <span id="blockLoadLauncherStatus" class="block-load-launcher-status">не задано</span>
                                 </button>
+                            </div>
+                            <div class="block-pdf-actions" aria-label="Общие действия и PDF документы по блочной ферменной конструкции">
+                                <button type="button" class="btn-secondary" onclick="openTransportModal()">🚚 Транспорт</button>
+                                <button type="button" class="btn-secondary" onclick="openAppSettingsModal()">⚙ Приложение</button>
+                                <button type="button" class="btn-secondary" onclick="openTrussTechPdfPreview()">▣ Технический PDF</button>
+                                <button type="button" class="btn-primary" onclick="openTrussClientPdfPreview()">◈ Смета клиенту</button>
+                                <button type="button" class="btn-primary full" onclick="openCombinedClientPdfPreview()">◈ Сцена + фермы</button>
                             </div>
                             <div id="blockSummary" class="block-calc-table-wrap"></div>
                             <div class="block-bom-wrap"><table class="block-bom" aria-label="Ведомость блоков ферм"><thead><tr><th>Элемент</th><th>Кол-во</th><th>Метраж</th><th>Вес</th><th>Прокат</th></tr></thead><tbody id="blockBomBody"></tbody></table></div>
@@ -10043,10 +10109,312 @@ function nodeSvg(item, spec){
             exportJson,
             exportSvgCalibration: microDownloadCalibrationFile,
             getState: () => JSON.parse(JSON.stringify(state)),
+            getSpecs: () => JSON.parse(JSON.stringify(SPECS)),
+            hasScheme: () => state.items && state.items.length > 0,
             getResult: () => calculate()
         };
 
         window.addEventListener('load', () => setTimeout(installUI, 350));
+    })();
+
+    /* --- FEG Stage PRO 3.5.62: combined single transport --- */
+    (function(){
+        const PDF_VERSION = '3.5.62-combined-single-transport';
+        const escPdf = (value) => {
+            if (typeof escapeHtml === 'function') return escapeHtml(String(value ?? ''));
+            return String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+        };
+        const moneyPdf = (value) => `${Number(value || 0).toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₽`;
+        const metricPdf = (value, digits = 2) => {
+            const n = Math.round((Number(value || 0)) * Math.pow(10, digits)) / Math.pow(10, digits);
+            return n.toLocaleString('ru-RU', { maximumFractionDigits: digits });
+        };
+        const kgPdf = (value) => `${metricPdf(value, 1)} кг`;
+        const safeFileName = (value) => String(value || 'feg').replace(/[\\/:*?"<>|]/g, '_').trim() || 'feg';
+        const trussApi = () => window.FEG35BlockConstructor || null;
+        const getSpecs = () => {
+            const api = trussApi();
+            try { return api && api.getSpecs ? api.getSpecs() : {}; } catch(e) { return {}; }
+        };
+        const getBlockState = () => {
+            const api = trussApi();
+            try { return api && api.getState ? api.getState() : { items: [] }; } catch(e) { return { items: [] }; }
+        };
+        const getBlockResult = () => {
+            const api = trussApi();
+            try { return api && api.getResult ? api.getResult() : null; } catch(e) { console.error(e); return null; }
+        };
+        const hasBlockScheme = () => {
+            const st = getBlockState();
+            return !!(st.items && st.items.length);
+        };
+        function blockProjectName(){
+            const el = document.getElementById('trussProjectName');
+            return (el && el.value.trim()) || (getBlockState().projectName || '').trim() || 'Ферменная конструкция';
+        }
+        function blockClientName(){
+            const el = document.getElementById('trussClientName');
+            return (el && el.value.trim()) || (getBlockState().clientName || '').trim() || 'Клиент не выбран';
+        }
+        function specCode(spec){
+            if (!spec) return '';
+            if (spec.id && spec.id.startsWith('truss')) return `MDM ${String(getBlockState().trussSeries || 'T29Q').replace('Q','')} · ${spec.short || spec.label || spec.id}`;
+            if (spec.u) return `MDM U${spec.u}`;
+            if (spec.id === 'base') return 'База / блин';
+            if (spec.id === 'pin') return 'CQ2';
+            return spec.id || '';
+        }
+        function nodeWeight(spec, state){
+            if (!spec) return 0;
+            const series = state.trussSeries || 'T29Q';
+            return spec.weights && Number.isFinite(Number(spec.weights[series])) ? Number(spec.weights[series]) : Number(state.nodeWeight || 0);
+        }
+        function blockBomRows(){
+            const st = getBlockState();
+            const res = getBlockResult();
+            const specs = getSpecs();
+            if (!res) return [];
+            const rows = [];
+            Object.keys(specs).forEach(id => {
+                const spec = specs[id];
+                if (!spec || spec.hidden || id === 'pin') return;
+                const count = Number(res.counts && res.counts[id] || 0);
+                const meters = Number(res.metersByType && res.metersByType[id] || 0);
+                if (!count && !meters) return;
+                let price = 0, weight = 0, unit = 'шт', qty = count;
+                if (spec.kind === 'straight') { price = meters * Number(st.pricePerMeter || 0); weight = meters * Number(st.weightPerMeter || 0); unit = 'м'; qty = meters; }
+                else if (spec.kind === 'node') { price = count * Number(st.nodePrice || 0); weight = count * nodeWeight(spec, st); }
+                else if (spec.kind === 'base') { price = count * Number(st.basePrice || 0); weight = count * Number(st.baseWeight || 0); }
+                rows.push({ id, code: specCode(spec), name: spec.label || spec.short || id, qty, unit, count, meters, weight, price, note: spec.kind === 'straight' ? 'прямые фермы' : spec.kind === 'node' ? 'угол / узел' : 'опора' });
+            });
+            if (Number(res.connectorKits || 0) > 0) {
+                rows.push({ id:'cq2kit', code:'CQ2', name:'Комплект торцевого соединения CQ2', qty:Number(res.connectorKits || 0), unit:'компл.', count:Number(res.connectorKits || 0), meters:0, weight:Number(res.c2PinWeight || 0) + Number(res.c2CotterWeight || 0) + Number(res.cq2Cones || 0) * Number(st.pinWeight || 0), price:Number(res.cq2Cones || 0) * Number(st.pinPrice || 0), note:'1 компл.: C2-88 ×4, C2-67 ×8, шплинт ×8' });
+                rows.push({ id:'c288', code:'C2-88', name:'Конусный коннектор C2-88', qty:Number(res.cq2Cones || 0), unit:'шт', count:Number(res.cq2Cones || 0), meters:0, weight:Number(res.cq2Cones || 0) * Number(st.pinWeight || 0), price:Number(res.cq2Cones || 0) * Number(st.pinPrice || 0), note:'4 шт на один CQ2-стык' });
+                rows.push({ id:'c267', code:'C2-67', name:'Палец C2-67', qty:Number(res.cq2Pins || 0), unit:'шт', count:Number(res.cq2Pins || 0), meters:0, weight:Number(res.c2PinWeight || 0), price:0, note:'8 шт на один CQ2-стык' });
+                rows.push({ id:'cotter', code:'C2-2-48', name:'Шплинт игольчатый', qty:Number(res.cq2Cotters || 0), unit:'шт', count:Number(res.cq2Cotters || 0), meters:0, weight:Number(res.c2CotterWeight || 0), price:0, note:'8 шт на один CQ2-стык' });
+            }
+            return rows;
+        }
+        function createBlockSchemeSvg(){
+            const st = getBlockState();
+            const specs = getSpecs();
+            const items = (st.items || []).slice();
+            const cellMeters = Number(st.cellMeters || 0.5);
+            if (!items.length) {
+                return '<div style="font-size:12px;color:#69727d;padding:16px;border:1px dashed #cbd5e1;border-radius:14px;text-align:center;">Схема ферм не выбрана</div>';
+            }
+            function cellCount(length){ return Math.max(1, Math.round(Number(length || cellMeters) / cellMeters)); }
+            function itemBounds(item){
+                const spec = specs[item.type] || {};
+                const x = Number(item.x || 0);
+                const y = Number(item.y || 0);
+                if (spec.kind === 'straight') {
+                    const len = cellCount(spec.length || cellMeters);
+                    return { minX:x, minY:y, maxX:x + (item.o === 'v' ? 1 : len), maxY:y + (item.o === 'v' ? len : 1) };
+                }
+                return { minX:x, minY:y, maxX:x + 1, maxY:y + 1 };
+            }
+            const bounds = items.map(itemBounds);
+            const minX = Math.min(...bounds.map(b => b.minX));
+            const minY = Math.min(...bounds.map(b => b.minY));
+            const maxX = Math.max(...bounds.map(b => b.maxX));
+            const maxY = Math.max(...bounds.map(b => b.maxY));
+            const cropCols = Math.max(1, maxX - minX);
+            const cropRows = Math.max(1, maxY - minY);
+            const W = 680, H = 390, pad = 24, titleH = 32, bottomPad = 18;
+            const drawW = W - pad * 2;
+            const drawH = H - titleH - bottomPad;
+            const scale = Math.max(8, Math.min(drawW / cropCols, drawH / cropRows));
+            const ox = (W - cropCols * scale) / 2;
+            const oy = titleH + (drawH - cropRows * scale) / 2;
+            const realW = cropCols * cellMeters;
+            const realH = cropRows * cellMeters;
+            const line = [];
+            line.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Схема блочной ферменной конструкции">`);
+            line.push(`<rect x="0" y="0" width="${W}" height="${H}" rx="18" fill="#fbf7ef" stroke="#d8cab7"/>`);
+            line.push(`<text x="24" y="22" font-family="Arial" font-size="13" font-weight="700" fill="#5b432d">Схема блочной конструкции · обрезка по конструкции · ${metricPdf(realW,1)}×${metricPdf(realH,1)} м</text>`);
+            line.push(`<rect x="${ox}" y="${oy}" width="${cropCols*scale}" height="${cropRows*scale}" fill="#fffdf8" stroke="#e0d2bf" stroke-width="1"/>`);
+            for (let x=0; x<=cropCols; x++) line.push(`<line x1="${ox+x*scale}" y1="${oy}" x2="${ox+x*scale}" y2="${oy+cropRows*scale}" stroke="rgba(70,53,34,.13)" stroke-width="1"/>`);
+            for (let y=0; y<=cropRows; y++) line.push(`<line x1="${ox}" y1="${oy+y*scale}" x2="${ox+cropCols*scale}" y2="${oy+y*scale}" stroke="rgba(70,53,34,.13)" stroke-width="1"/>`);
+            items.forEach(item => {
+                const spec = specs[item.type] || {};
+                const x = ox + (Number(item.x || 0) - minX) * scale;
+                const y = oy + (Number(item.y || 0) - minY) * scale;
+                const rot = Number(item.r ?? item.rotation ?? 0);
+                if (spec.kind === 'straight') {
+                    const lenCells = cellCount(spec.length || cellMeters);
+                    const w = (item.o === 'v' ? 1 : lenCells) * scale;
+                    const h = (item.o === 'v' ? lenCells : 1) * scale;
+                    line.push(`<rect x="${x+1}" y="${y+1}" width="${Math.max(2,w-2)}" height="${Math.max(2,h-2)}" rx="${Math.max(3, scale*.18)}" fill="#87919d" stroke="#4f5965" stroke-width="1.2"/>`);
+                    line.push(`<text x="${x+w/2}" y="${y+h/2+4}" text-anchor="middle" font-family="Arial" font-size="${Math.max(8, Math.min(12, scale*.34))}" font-weight="800" fill="#fff">${escPdf(spec.short || '')}</text>`);
+                } else if (spec.kind === 'node') {
+                    const cx = x + scale/2, cy = y + scale/2;
+                    line.push(`<g transform="rotate(${rot} ${cx} ${cy})"><rect x="${x+2}" y="${y+2}" width="${Math.max(4,scale-4)}" height="${Math.max(4,scale-4)}" rx="${Math.max(4, scale*.22)}" fill="#c9a36e" stroke="#7b5a30" stroke-width="1.2"/></g>`);
+                    line.push(`<text x="${cx}" y="${cy+4}" text-anchor="middle" font-family="Arial" font-size="${Math.max(8, Math.min(11, scale*.32))}" font-weight="900" fill="#302112">${escPdf(spec.icon || spec.short || 'U')}</text>`);
+                } else if (spec.kind === 'base') {
+                    const cx = x + scale/2, cy = y + scale/2, r = Math.max(4, scale*.34);
+                    line.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#66717d" stroke="#313943" stroke-width="1.2"/>`);
+                    line.push(`<circle cx="${cx}" cy="${cy}" r="${Math.max(2,r*.35)}" fill="#f7f3eb"/>`);
+                }
+            });
+            line.push(`</svg>`);
+            return `<div style="width:100%; overflow:hidden;">${line.join('')}</div>`;
+        }
+        function ensureBlockPdfReady(){
+            const api = trussApi();
+            if (!api || !api.getResult) {
+                alert('Блочный конструктор ещё не загружен. Откройте страницу ферм и повторите попытку.');
+                return false;
+            }
+            if (!hasBlockScheme()) {
+                alert('Нет схемы ферменной конструкции. Поставьте блоки на поле или выберите шаблон портала/рамы.');
+                return false;
+            }
+            return true;
+        }
+        function setPdfChrome(title, footer){
+            if (typeof pdfTitleEl !== 'undefined' && pdfTitleEl) pdfTitleEl.textContent = title;
+            if (typeof pdfFooterEl !== 'undefined' && pdfFooterEl) pdfFooterEl.textContent = footer;
+        }
+        function updateBlockTrussTechPdfContent(){
+            setPdfChrome('ТЕХНИЧЕСКИЙ ЛИСТ БЛОЧНОЙ ФЕРМЕННОЙ КОНСТРУКЦИИ', 'FEG Stage PRO — технический лист ферм для склада, погрузки и сборки');
+            if (!ensureBlockPdfReady()) { if (pdfDataDiv) pdfDataDiv.innerHTML = '<p>Нет схемы ферм.</p>'; return false; }
+            const st = getBlockState();
+            const res = getBlockResult();
+            const rows = blockBomRows();
+            const now = new Date();
+            const load = res.loadCheck || {};
+            const loadText = load.overall === 'bad' ? 'есть превышение / вне таблицы' : load.overall === 'risk' ? 'проходит, но запас меньше 10%' : load.overall === 'ok' ? 'проходит по выбранной таблице' : 'не задано';
+            pdfDataDiv.innerHTML = `
+                <div class="tech-pdf">
+                    <div class="tech-top"><div class="tech-box"><div><strong>Проект:</strong> ${escPdf(blockProjectName())}</div><div><strong>Клиент:</strong> ${escPdf(blockClientName())}</div><div><strong>Дата/время:</strong> ${now.toLocaleDateString('ru-RU')} ${now.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})}</div><div><strong>Документ:</strong> складской лист комплектации и сборки</div></div><div class="tech-box"><div><strong>Тип фермы:</strong> ${escPdf(String(st.trussSeries || 'T29Q').replace('Q',''))} вид Q</div><div><strong>Блоков на схеме:</strong> ${(st.items || []).length} шт</div><div><strong>Прямые фермы:</strong> ${metricPdf(res.totalMeters)} м</div><div><strong>Габарит с U-блоками:</strong> ${metricPdf(res.loadCheck && res.loadCheck.spanInfo ? res.loadCheck.spanInfo.maxEffective : 0)} м</div><div><strong>Вес комплекта:</strong> ${kgPdf(res.weight)}</div><div><strong>Проверка нагрузки:</strong> ${escPdf(loadText)}</div></div></div>
+                    <div class="section-title">1. Схема для сборки</div><div class="scheme-row"><div>${createBlockSchemeSvg()}</div><div class="notes"><table><tr><th>Параметр</th><th class="qty">Значение</th></tr><tr><td>Прямые фермы</td><td class="qty">${metricPdf(res.totalMeters)} м</td></tr><tr><td>Узлы МДМТ</td><td class="qty">${res.nodePieces || 0} шт</td></tr><tr><td>Базы / блины</td><td class="qty">${res.counts && res.counts.base || 0} шт</td></tr><tr><td>CQ2 соединения</td><td class="qty">${res.connectorKits || 0} компл.</td></tr><tr><td>C2-88</td><td class="qty">${res.cq2Cones || 0} шт</td></tr><tr><td>C2-67</td><td class="qty">${res.cq2Pins || 0} шт</td></tr><tr><td>Шплинты</td><td class="qty">${res.cq2Cotters || 0} шт</td></tr><tr><td>Вес комплекта</td><td class="qty">${kgPdf(res.weight)}</td></tr></table></div></div>
+                    <div class="section-title">2. Комплектация для склада / погрузки</div><table><thead><tr><th style="width:34px;text-align:center;">№</th><th>Код / позиция</th><th class="qty">Кол-во</th><th style="text-align:center;">Ед.</th><th class="qty">Метраж</th><th class="qty">Вес</th><th>Примечание</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td style="text-align:center;">${i+1}</td><td><strong>${escPdf(r.code)}</strong><br>${escPdf(r.name)}</td><td class="qty">${metricPdf(r.qty, r.unit === 'м' ? 1 : 0)}</td><td style="text-align:center;">${escPdf(r.unit)}</td><td class="qty">${r.meters ? metricPdf(r.meters,1)+' м' : '—'}</td><td class="qty">${r.weight ? kgPdf(r.weight) : '—'}</td><td>${escPdf(r.note || '')}</td></tr>`).join('')}</tbody></table>
+                    <div class="section-title">3. Инструкции</div><div class="notes"><p><strong>Для склада:</strong> собрать позиции по таблице, проверить количество C2-88, C2-67 и шплинтов по комплектам CQ2, отдельно промаркировать U-блоки.</p><p><strong>Для площадки:</strong> схема показывает ориентацию блоков. Допустимые нагрузки, подвес, балласт, ветровые нагрузки и безопасность проверяются по паспортам производителя и ответственным инженером.</p></div><div class="signature-row"><div class="sign-line">Склад / комплектовщик</div><div class="sign-line">Ответственный за сборку</div><div class="sign-line">Проверил</div></div>
+                </div>`;
+            return true;
+        }
+        function updateBlockTrussClientPdfContent(){
+            setPdfChrome('КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ: ФЕРМЕННАЯ КОНСТРУКЦИЯ', 'FEG Stage PRO — клиентская смета по блочной ферменной конструкции');
+            if (!ensureBlockPdfReady()) { if (pdfDataDiv) pdfDataDiv.innerHTML = '<p>Нет схемы ферм.</p>'; return false; }
+            const st = getBlockState();
+            const res = getBlockResult();
+            const now = new Date();
+            const validUntil = new Date(now.getTime() + 7*24*60*60*1000).toLocaleDateString('ru-RU');
+            pdfDataDiv.innerHTML = `<div class="client-pdf"><div class="client-hero"><div><div class="brand-title"><span>FEG</span> Stage PRO</div><div class="brand-subtitle">Аренда и монтаж ферменной конструкции. Смета подготовлена по блочной схеме и расчётной комплектации.</div></div><div class="client-meta"><div><strong>Проект:</strong> ${escPdf(blockProjectName())}</div><div><strong>Клиент:</strong> ${escPdf(blockClientName())}</div><div><strong>Дата:</strong> ${now.toLocaleDateString('ru-RU')}</div><div><strong>Действительно до:</strong> ${validUntil}</div></div></div><div class="client-main-grid"><div class="client-card"><div class="client-section-title">Схема конструкции</div><div class="client-scheme-wrap">${createBlockSchemeSvg()}</div><div class="client-note">Схема является компоновочной. Нагрузки и безопасность конструкции уточняются отдельно по паспортам и условиям площадки.</div></div><div><div class="client-card" style="margin-bottom:14px;"><div class="client-section-title">Основные параметры</div><div class="client-params"><div class="client-param"><span>Тип фермы</span><strong>${escPdf(String(st.trussSeries || 'T29Q').replace('Q',''))}</strong></div><div class="client-param"><span>Метраж прямых ферм</span><strong>${metricPdf(res.totalMeters)} м</strong></div><div class="client-param"><span>Узлы / U-блоки</span><strong>${res.nodePieces || 0} шт</strong></div><div class="client-param"><span>Вес комплекта</span><strong>${kgPdf(res.weight)}</strong></div></div></div><div class="client-card"><div class="client-section-title">Стоимость</div><table class="client-price-table"><thead><tr><th>Позиция</th><th>Стоимость</th></tr></thead><tbody><tr><td>Прокат ферменной конструкции</td><td>${moneyPdf(res.rental)}</td></tr><tr><td>Монтаж / демонтаж</td><td>${moneyPdf(res.install)}</td></tr><tr><td>Транспорт</td><td>${moneyPdf(res.transport)}</td></tr><tr class="client-total-row"><td>Итого к оплате</td><td>${moneyPdf(res.total)}</td></tr></tbody></table><div class="client-note">Состав комплекта: прямые фермы, U-блоки, базы/блины и CQ2-соединения согласно техническому листу.</div></div></div></div><div class="client-footer-line">FEG Stage PRO · клиентская смета по ферменной конструкции · ${PDF_VERSION}</div></div>`;
+            return true;
+        }
+        function stageSummaryForCombined(){
+            try { if (!lastResult && selectedModules && selectedModules.size && typeof calc === 'function') calc(false); } catch(e) {}
+            return lastResult || null;
+        }
+        function updateBlockCombinedClientPdfContent(){
+            setPdfChrome('ОБЩЕЕ КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ', 'FEG Stage PRO — общее КП: сцена + блочная ферменная конструкция');
+            const stage = stageSummaryForCombined();
+            const truss = hasBlockScheme() ? getBlockResult() : null;
+            if (!stage && !truss) { alert('Нет активного расчёта сцены или ферменной конструкции.'); if (pdfDataDiv) pdfDataDiv.innerHTML = '<p>Нет данных для общего КП.</p>'; return false; }
+            const now = new Date();
+            const validUntil = new Date(now.getTime() + 7*24*60*60*1000).toLocaleDateString('ru-RU');
+            const stageProject = (projectNameInput && projectNameInput.value.trim()) || 'Сцена';
+            const stageClient = (clientSelect && clientSelect.value) || blockClientName();
+            const transportSettingsNormalized = typeof normalizeTransportSettings === 'function'
+                ? normalizeTransportSettings(transportSettings)
+                : (transportSettings || {});
+            const combinedTransport = typeof calculateTransportCost === 'function'
+                ? Number(calculateTransportCost(transportSettingsNormalized) || 0)
+                : 0;
+            const combinedTransportLabel = typeof getTransportLabel === 'function'
+                ? getTransportLabel(transportSettingsNormalized)
+                : 'Общий транспорт';
+            const stageTransportInOwnTotal = stage ? Number(stage.transportCost || 0) : 0;
+            const trussTransportInOwnTotal = truss ? Number(truss.transport || 0) : 0;
+            const stageCostWithoutTransport = stage ? Math.max(0, Number(stage.total || 0) - stageTransportInOwnTotal) : 0;
+            const trussCostWithoutTransport = truss ? Math.max(0, Number(truss.total || 0) - trussTransportInOwnTotal) : 0;
+            const total = stageCostWithoutTransport + trussCostWithoutTransport + combinedTransport;
+            const stageDesc = stage ? `${metricPdf(stage.widthMeters)} × ${metricPdf(stage.depthMeters)} м · ${metricPdf(stage.areaMeters)} м² · ${stage.sheets} мод.` : 'Не включена';
+            const trussDesc = truss ? `${metricPdf(truss.totalMeters)} м ферм · ${truss.nodePieces || 0} узлов · ${kgPdf(truss.weight)}` : 'Не включены';
+            const stageScheme = stage ? (typeof createClientSchemeGrid === 'function' ? createClientSchemeGrid() : createPdfMiniGrid()) : '';
+            const trussScheme = truss ? createBlockSchemeSvg() : '';
+            pdfDataDiv.innerHTML = `
+                <div class="client-pdf">
+                    <div class="client-hero">
+                        <div><div class="brand-title"><span>FEG</span> Stage PRO</div><div class="brand-subtitle">Общее коммерческое предложение: сцена и ферменная конструкция в одном документе.</div></div>
+                        <div class="client-meta"><div><strong>Проект сцены:</strong> ${escPdf(stageProject)}</div><div><strong>Проект ферм:</strong> ${escPdf(blockProjectName())}</div><div><strong>Клиент:</strong> ${escPdf(stageClient)}</div><div><strong>Дата:</strong> ${now.toLocaleDateString('ru-RU')}</div><div><strong>Действительно до:</strong> ${validUntil}</div></div>
+                    </div>
+                    <div class="client-main-grid">
+                        <div class="client-card">
+                            <div class="client-section-title">Схемы проекта</div>
+                            ${stage ? `<div style="font-weight:800;margin-bottom:6px;">Сцена: ${escPdf(stageProject)}</div><div class="client-scheme-wrap" style="margin-bottom:10px;">${stageScheme}</div>` : '<div class="client-note" style="margin-bottom:10px;">Сценическая конструкция не включена.</div>'}
+                            ${truss ? `<div style="font-weight:800;margin-bottom:6px;">Фермы: ${escPdf(blockProjectName())}</div><div class="client-scheme-wrap">${trussScheme}</div>` : '<div class="client-note">Ферменная конструкция не включена.</div>'}
+                            <div class="client-note">Схемы обрезаны по фактической конструкции без пустых полей. Техническая комплектация для склада формируется отдельными техническими PDF.</div>
+                        </div>
+                        <div>
+                            <div class="client-card" style="margin-bottom:14px;"><div class="client-section-title">Состав проекта</div><div class="client-params"><div class="client-param"><span>Сцена</span><strong>${escPdf(stageDesc)}</strong></div><div class="client-param"><span>Фермы</span><strong>${escPdf(trussDesc)}</strong></div><div class="client-param"><span>Общий транспорт</span><strong>${escPdf(combinedTransportLabel)}</strong></div></div></div>
+                            <div class="client-card"><div class="client-section-title">Сводная стоимость</div><table class="client-price-table"><thead><tr><th>Позиция</th><th>Стоимость</th></tr></thead><tbody>${stage ? `<tr><td>Сцена: прокат и монтаж</td><td>${moneyPdf(stageCostWithoutTransport)}</td></tr>` : ''}${truss ? `<tr><td>Фермы: прокат и монтаж</td><td>${moneyPdf(trussCostWithoutTransport)}</td></tr>` : ''}<tr><td>Транспорт общий <span style="font-size:10px;color:#69727d;">(${escPdf(combinedTransportLabel)})</span></td><td>${moneyPdf(combinedTransport)}</td></tr><tr class="client-total-row"><td>Итого сцена + фермы</td><td>${moneyPdf(total)}</td></tr></tbody></table><div class="client-note">Транспорт в общем КП считается одной общей строкой и не дублируется отдельно в сцене и фермах.</div></div>
+                        </div>
+                    </div>
+                    <div class="client-footer-line">FEG Stage PRO · объединённое КП · ${PDF_VERSION}</div>
+                </div>`;
+            return true;
+        }
+        async function createBlockPdfBlob(kind){
+            let ok = false;
+            if (kind === 'trussTech') ok = updateBlockTrussTechPdfContent();
+            else if (kind === 'trussClient') ok = updateBlockTrussClientPdfContent();
+            else if (kind === 'combinedClient') ok = updateBlockCombinedClientPdfContent();
+            if (!ok) return null;
+            const pdfContainer = document.getElementById('pdfContent');
+            if (!pdfContainer) return null;
+            pdfContainer.style.display = 'block';
+            pdfContainer.style.position = 'absolute';
+            pdfContainer.style.top = '-9999px';
+            pdfContainer.style.left = '0';
+            pdfContainer.style.width = '1120px';
+            pdfContainer.style.background = 'white';
+            try {
+                const canvas = await html2canvas(pdfContainer, { scale: 2, backgroundColor: '#ffffff', logging: false, useCORS: false });
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('l', 'mm', 'a4');
+                const pageWidth = 297, pageHeight = 210, margin = 6;
+                const maxWidth = pageWidth - margin * 2, maxHeight = pageHeight - margin * 2;
+                let renderWidth = maxWidth;
+                let renderHeight = (canvas.height * renderWidth) / canvas.width;
+                if (renderHeight > maxHeight) { renderHeight = maxHeight; renderWidth = (canvas.width * renderHeight) / canvas.height; }
+                doc.addImage(imgData, 'PNG', (pageWidth-renderWidth)/2, (pageHeight-renderHeight)/2, renderWidth, renderHeight, undefined, 'FAST');
+                const nameBase = kind === 'combinedClient' ? `${(projectNameInput && projectNameInput.value.trim()) || 'stage'}_${blockProjectName()}` : blockProjectName();
+                preparedPdfKind = kind;
+                if (kind === 'trussTech') preparedPdfName = `tech_block_truss_${safeFileName(nameBase)}_${Date.now()}.pdf`;
+                else if (kind === 'trussClient') preparedPdfName = `kp_block_truss_${safeFileName(nameBase)}_${Date.now()}.pdf`;
+                else preparedPdfName = `kp_stage_truss_${safeFileName(nameBase)}_${Date.now()}.pdf`;
+                return doc.output('blob');
+            } catch(e) {
+                console.error(e);
+                alert('Ошибка при создании PDF: ' + (e && e.message ? e.message : e));
+                return null;
+            } finally {
+                pdfContainer.style.display = 'none';
+                pdfContainer.style.position = '';
+            }
+        }
+        async function openBlockPdf(kind, title){
+            const blob = await createBlockPdfBlob(kind);
+            if (!blob) return;
+            preparedPdfBlob = blob;
+            if (preparedPdfUrl) URL.revokeObjectURL(preparedPdfUrl);
+            preparedPdfUrl = URL.createObjectURL(blob);
+            if (pdfModalTitle) pdfModalTitle.textContent = title;
+            pdfPreviewFrame.src = preparedPdfUrl;
+            pdfModal.classList.add('open');
+            pdfModal.setAttribute('aria-hidden', 'false');
+        }
+        window.updateTrussTechPdfContent = updateBlockTrussTechPdfContent;
+        window.updateTrussClientPdfContent = updateBlockTrussClientPdfContent;
+        window.updateCombinedClientPdfContent = updateBlockCombinedClientPdfContent;
+        window.openTrussTechPdfPreview = () => openBlockPdf('trussTech', 'Предпросмотр технического PDF ферм');
+        window.openTrussClientPdfPreview = () => openBlockPdf('trussClient', 'Предпросмотр сметы по фермам');
+        window.openCombinedClientPdfPreview = () => openBlockPdf('combinedClient', 'Предпросмотр общего КП: сцена + фермы');
+        window.FEG359_BLOCK_ONLY_PDF_SUITE = true;
     })();
 
 </script>

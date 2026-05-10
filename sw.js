@@ -1,6 +1,6 @@
-const CACHE_VERSION = 'FEG_STAGE_PRO_3_5_58';
-const CACHE_NAME = 'feg-stage-pro-v3-5-58-sorted-object-menus';
-const RUNTIME_CACHE = 'feg-stage-runtime-v35-3-5-58';
+const CACHE_VERSION = 'FEG_STAGE_PRO_3_5_62';
+const CACHE_NAME = 'feg-stage-pro-v3-5-62-combined-single-transport';
+const RUNTIME_CACHE = 'feg-stage-runtime-v35-3-5-62';
 
 const CORE_ASSETS = [
   './',

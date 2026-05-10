@@ -1,6 +1,6 @@
 {
-  "name": "FEG Stage PRO v3.5.58",
-  "short_name": "FEG PRO 3.5.58",
+  "name": "FEG Stage PRO v3.5.62",
+  "short_name": "FEG PRO 3.5.62",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#080c10",
@@ -22,5 +22,5 @@
       "type": "image/png"
     }
   ],
-  "description": "FEG Stage PRO 3.5.58: сцены, фермы, блочный конструктор, мобильная раскладка, пересортированные группы объектов, файловая SVG-калибровка, таблицы нагрузок T29/T39, клиенты, Supabase и PDF/КП."
+  "description": "FEG Stage PRO 3.5.62: общий транспорт в объединённом КП сцена+фермы, сцены, блочный конструктор ферм, PDF-схемы, файловая SVG-калибровка, нагрузки T29/T39, клиенты и Supabase."
 }
