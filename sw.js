@@ -1,5 +1,5 @@
-const CACHE_VERSION = 'FEG_STAGE_PRO_3_5_51';
-const CACHE_NAME = 'feg-stage-pro-v3-5-51-file-svg-calibration';
+const CACHE_VERSION = 'FEG_STAGE_PRO_3_5_52';
+const CACHE_NAME = 'feg-stage-pro-v3-5-52-fixed-svg-calibration';
 const RUNTIME_CACHE = 'feg-stage-runtime-v35-3-5-51';
 
 const CORE_ASSETS = [

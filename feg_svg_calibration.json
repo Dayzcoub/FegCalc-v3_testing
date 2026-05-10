@@ -1,9 +1,9 @@
 {
   "schema": "feg-stage-pro-svg-calibration-v1",
-  "version": "3.5.51-file-based-svg-calibration",
-  "updatedAt": "2026-05-10T10:08:44.695Z",
+  "version": "3.5.52-fixed-svg-calibration",
+  "updatedAt": "2026-05-10T10:26:43Z",
   "fileName": "feg_svg_calibration.json",
-  "note": "Этот файл лежит рядом с index.html. FEG Stage PRO загружает его при старте и применяет как серверную SVG-калибровку. Локальные настройки браузера имеют приоритет только как временный черновик администратора.",
+  "note": "Зафиксированная серверная SVG-калибровка. Файл лежит рядом с index.html и применяется основной программой при запуске.",
   "items": {
     "base": {
       "0": {
@@ -22,9 +22,9 @@
     },
     "cornerU003": {
       "0": {
-        "dx": 34,
-        "dy": 31,
-        "scale": 1.14,
+        "dx": 33,
+        "dy": 30,
+        "scale": 1.15,
         "scaleX": 1,
         "scaleY": 1,
         "rotate": 0,
@@ -36,8 +36,8 @@
       },
       "90": {
         "dx": -32,
-        "dy": 34,
-        "scale": 1.14,
+        "dy": 33,
+        "scale": 1.15,
         "scaleX": 1,
         "scaleY": 1,
         "rotate": 0,
@@ -48,9 +48,9 @@
         "stroke": ""
       },
       "180": {
-        "dx": -35,
-        "dy": -30,
-        "scale": 1.14,
+        "dx": -34,
+        "dy": -31,
+        "scale": 1.15,
         "scaleX": 1,
         "scaleY": 1,
         "rotate": 0,
@@ -61,9 +61,9 @@
         "stroke": ""
       },
       "270": {
-        "dx": 32,
+        "dx": 31,
         "dy": -34,
-        "scale": 1.14,
+        "scale": 1.15,
         "scaleX": 1,
         "scaleY": 1,
         "rotate": 0,
@@ -76,9 +76,9 @@
     },
     "cornerU016": {
       "0": {
-        "dx": 5,
-        "dy": 3,
-        "scale": 1.26,
+        "dx": 7,
+        "dy": 5,
+        "scale": 1.27,
         "scaleX": 1,
         "scaleY": 1,
         "rotate": 0,
@@ -89,9 +89,9 @@
         "stroke": ""
       },
       "90": {
-        "dx": -6,
-        "dy": 1,
-        "scale": 1.26,
+        "dx": -5,
+        "dy": 6,
+        "scale": 1.27,
         "scaleX": 1,
         "scaleY": 1,
         "rotate": 0,
@@ -102,9 +102,9 @@
         "stroke": ""
       },
       "180": {
-        "dx": -8,
-        "dy": -10,
-        "scale": 1.26,
+        "dx": -5,
+        "dy": -8,
+        "scale": 1.27,
         "scaleX": 1,
         "scaleY": 1,
         "rotate": 0,
@@ -115,9 +115,9 @@
         "stroke": ""
       },
       "270": {
-        "dx": 6,
-        "dy": -10,
-        "scale": 1.26,
+        "dx": 8,
+        "dy": -8,
+        "scale": 1.27,
         "scaleX": 1,
         "scaleY": 1,
         "rotate": 0,
@@ -130,7 +130,7 @@
     },
     "cornerU017": {
       "0": {
-        "dx": 9,
+        "dx": 11,
         "dy": 37,
         "scale": 1.3,
         "scaleX": 1,
@@ -143,8 +143,8 @@
         "stroke": ""
       },
       "90": {
-        "dx": -34,
-        "dy": 8,
+        "dx": -32,
+        "dy": 9,
         "scale": 1.3,
         "scaleX": 1,
         "scaleY": 1,
@@ -156,7 +156,7 @@
         "stroke": ""
       },
       "180": {
-        "dx": -6,
+        "dx": -7,
         "dy": -36,
         "scale": 1.3,
         "scaleX": 1,
