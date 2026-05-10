@@ -6416,7 +6416,7 @@
 
     /* --- FEG Stage PRO 3.4.7: фикс отрисовки ферм на поле и в PDF --- */
     (function(){
-        const VERSION = '3.5.48-price-weight-settings-modal';
+        const VERSION = '3.5.50-light-theme-block-constructor-fix';
 
         function f345InstallStyle(){
             if (document.getElementById('feg345TrussFixStyle')) return;
@@ -7282,7 +7282,7 @@
 
     /* --- FEG Stage PRO 3.5: блочный конструктор ферм --- */
     (function(){
-        const VERSION = '3.5.48-price-weight-settings-modal';
+        const VERSION = '3.5.50-light-theme-block-constructor-fix';
         const STORAGE_KEY = 'fegTrussBlockConstructorDraftV35';
         const DEFAULTS = {
             cols: 24,
@@ -7572,6 +7572,29 @@
                 .micro-actions button { border:0; border-radius:11px; padding:8px 10px; font-weight:800; cursor:pointer; background:rgba(255,255,255,.12); color:#f3f6fa; }
                 .micro-actions button.primary { background:#ffdd69; color:#2f2408; }
                 .micro-hint { margin-top:9px; font-size:11px; line-height:1.35; color:rgba(243,246,250,.68); }
+                .micro-pin-backdrop {
+                    position: fixed; inset: 0; z-index: 9999; display: none;
+                    align-items: center; justify-content: center; padding: 18px;
+                    background: rgba(3,7,12,.56); backdrop-filter: blur(10px);
+                }
+                .micro-pin-backdrop.open { display:flex; }
+                .micro-pin-modal {
+                    width: min(360px, 100%); border-radius: 22px; padding: 18px;
+                    background: linear-gradient(180deg, rgba(25,32,43,.98), rgba(12,17,24,.98));
+                    border: 1px solid rgba(255,255,255,.16); color: #f3f6fa;
+                    box-shadow: 0 24px 80px rgba(0,0,0,.48);
+                }
+                .micro-pin-modal h4 { margin:0 0 8px; font-size:16px; font-weight:950; }
+                .micro-pin-modal p { margin:0 0 12px; font-size:12px; line-height:1.4; color:rgba(243,246,250,.72); }
+                .micro-pin-modal input {
+                    width:100%; box-sizing:border-box; border-radius:13px; border:1px solid rgba(255,255,255,.18);
+                    background:rgba(255,255,255,.08); color:#f3f6fa; padding:11px 12px;
+                    font-size:18px; font-weight:900; letter-spacing:.22em; text-align:center;
+                }
+                .micro-pin-error { min-height:16px; margin-top:8px; font-size:12px; color:#ffb4a6; font-weight:800; }
+                .micro-pin-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+                .micro-pin-actions button { border:0; border-radius:12px; padding:9px 12px; font-weight:900; cursor:pointer; background:rgba(255,255,255,.12); color:#f3f6fa; }
+                .micro-pin-actions button.primary { background:#ffdd69; color:#2f2408; }
 
 .block-item-base { border-radius: 50%; background: transparent; border: 0; color:#eef2f6; box-shadow:none; }
                 .block-item-pin { border-radius: 50%; background: #f1c55e; color:#3b2a12; border: 2px solid rgba(0,0,0,.16); font-size: 14px; }
@@ -7636,19 +7659,69 @@
                 .block-load-sections { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
                 .block-load-section { border:1px solid rgba(255,255,255,.10); border-radius:16px; overflow:hidden; background:rgba(255,255,255,.035); }
                 .block-load-section h5 { margin:0; padding:10px 12px; background:rgba(255,255,255,.055); font-size:.8rem; color:#f4d7a8; font-weight:900; }
-                body.theme-light .block-truss-section, body.theme-light .block-truss-card { background: linear-gradient(180deg, rgba(20,24,30,.98), rgba(10,13,18,.98)); border-color:rgba(255,255,255,.10); }
-                body.theme-light .block-grid-wrap { background: linear-gradient(180deg, rgba(15,18,24,.98), rgba(7,10,14,.98)); border-color:rgba(255,255,255,.10); }
-                body.theme-light .block-grid { background-color:#14181f; border-color:rgba(255,255,255,.08); }
-                body.theme-light .block-library button { background: linear-gradient(180deg, rgba(41,47,56,.95), rgba(24,28,34,.95)); color:#e8edf4; border-color:rgba(255,255,255,.10); }
-                body.theme-light .block-library button.active { background: linear-gradient(180deg, rgba(92,101,114,.98), rgba(42,49,58,.98)); border-color:rgba(205,214,224,.95); }
-                body.theme-light .block-calc-table-wrap, body.theme-light .block-calc-table th, body.theme-light .block-calc-table td, body.theme-light .block-bom-wrap, body.theme-light .block-bom th, body.theme-light .block-bom td, body.theme-light .block-load-grid, body.theme-light .block-load-panel, body.theme-light .block-load-section, body.theme-light .block-load-hero-card, body.theme-light .block-load-note, body.theme-light .block-load-modal { border-color:#d7c9b5; }
-                body.theme-light .block-load-modal { background:linear-gradient(180deg, #ffffff, #f6f1e8); }
+                /* v3.5.50: отдельная светлая палитра для блочного конструктора. Темная тема не затрагивается. */
+                body.theme-light #blockTrussModule.block-truss-section { color:#201c17; background:linear-gradient(180deg, #fffdf8, #f3ede3); border-color:rgba(91,67,45,.20); box-shadow:0 18px 44px rgba(70,53,34,.14), inset 0 1px 0 rgba(255,255,255,.78); }
+                body.theme-light .block-truss-header h3 { color:#2a241e; }
+                body.theme-light .block-truss-header .truss-subtitle { color:#6d6255; }
+                body.theme-light .block-truss-card { color:#201c17; background:linear-gradient(180deg, #fffaf2, #f4ecde); border-color:#d7c9b5; box-shadow:inset 0 1px 0 rgba(255,255,255,.75); }
+                body.theme-light .block-project-panel { color:#201c17; background:linear-gradient(180deg, #fbf6ed, #efe5d6); border-color:#d7c9b5; box-shadow:inset 0 1px 0 rgba(255,255,255,.68); }
+                body.theme-light .block-project-panel label,
+                body.theme-light .block-truss-controls label,
+                body.theme-light .block-truss-prices label,
+                body.theme-light .block-caption,
+                body.theme-light .block-load-launcher-main span { color:#6d6255; }
+                body.theme-light .block-clean-note { color:#165b36; background:#e6f4e8; border-color:#b8d9c0; }
+                body.theme-light .block-display-menu summary { color:#5b432d; background:#f4ecde; border-color:#cdbb9f; }
+                body.theme-light .block-display-menu summary small { color:#7f7467; }
+                body.theme-light .block-display-menu[open] summary { background:#eadcc8; border-color:#9b784e; }
+                body.theme-light .block-display-menu-body { background:#fffaf2; border-color:#d7c9b5; box-shadow:0 16px 38px rgba(53,38,19,.18); }
+                body.theme-light .block-check-row { color:#2d261f !important; }
+                body.theme-light .block-check-group { background:#f4ecde; border:1px solid rgba(91,67,45,.10); }
+                body.theme-light .block-check-group-title { color:#7a5732; }
+                body.theme-light .block-library button { background:linear-gradient(180deg, #fffaf2, #ece2d2); color:#2a241e; border-color:#d4c3ad; box-shadow:inset 0 1px 0 rgba(255,255,255,.74), 0 1px 2px rgba(70,53,34,.08); }
+                body.theme-light .block-library button:hover { background:linear-gradient(180deg, #ffffff, #e5d7c2); border-color:#b99970; }
+                body.theme-light .block-library button.active { color:#261b11; background:linear-gradient(180deg, #ead8bc, #d5bd98); border-color:#8b6842; box-shadow:0 0 0 2px rgba(139,104,66,.18) inset, 0 6px 14px rgba(70,53,34,.12); }
+                body.theme-light .block-grid-wrap { background:linear-gradient(180deg, #e8dfd1, #d9cbb8); border-color:#cab8a1; box-shadow:inset 0 1px 0 rgba(255,255,255,.55); }
+                body.theme-light .block-grid { background-color:#fbf6ed; border-color:#c7b59e; }
+                body.theme-light .block-grid[data-bg-mode="grid"][data-bg-density="thin"] { background-image:linear-gradient(to right, rgba(70,53,34,.20) 1px, transparent 1px), linear-gradient(to bottom, rgba(70,53,34,.20) 1px, transparent 1px); background-size:var(--block-cell,28px) var(--block-cell,28px), var(--block-cell,28px) var(--block-cell,28px); }
+                body.theme-light .block-grid[data-bg-mode="grid"][data-bg-density="medium"] { background-image:linear-gradient(to right, rgba(70,53,34,.24) 1px, transparent 1px), linear-gradient(to bottom, rgba(70,53,34,.24) 1px, transparent 1px), linear-gradient(to right, rgba(70,53,34,.11) 1px, transparent 1px), linear-gradient(to bottom, rgba(70,53,34,.11) 1px, transparent 1px); background-size:var(--block-cell,28px) var(--block-cell,28px), var(--block-cell,28px) var(--block-cell,28px), calc(var(--block-cell,28px) / 2) calc(var(--block-cell,28px) / 2), calc(var(--block-cell,28px) / 2) calc(var(--block-cell,28px) / 2); }
+                body.theme-light .block-grid[data-bg-mode="grid"][data-bg-density="dense"] { background-image:linear-gradient(to right, rgba(70,53,34,.28) 1px, transparent 1px), linear-gradient(to bottom, rgba(70,53,34,.28) 1px, transparent 1px), linear-gradient(to right, rgba(70,53,34,.14) 1px, transparent 1px), linear-gradient(to bottom, rgba(70,53,34,.14) 1px, transparent 1px), linear-gradient(to right, rgba(70,53,34,.07) 1px, transparent 1px), linear-gradient(to bottom, rgba(70,53,34,.07) 1px, transparent 1px); background-size:var(--block-cell,28px) var(--block-cell,28px), var(--block-cell,28px) var(--block-cell,28px), calc(var(--block-cell,28px) / 2) calc(var(--block-cell,28px) / 2), calc(var(--block-cell,28px) / 2) calc(var(--block-cell,28px) / 2), calc(var(--block-cell,28px) / 4) calc(var(--block-cell,28px) / 4), calc(var(--block-cell,28px) / 4) calc(var(--block-cell,28px) / 4); }
+                body.theme-light .block-item.selected { outline-color:#9b784e; box-shadow:0 0 0 4px rgba(139,104,66,.22), 0 2px 14px rgba(70,53,34,.20); }
+                body.theme-light .truss-rail { stroke:#4c5c6c; filter:drop-shadow(0 1px 1px rgba(255,255,255,.55)); }
+                body.theme-light .truss-web { stroke:#6e7f8f; opacity:.96; }
+                body.theme-light .truss-end { stroke:#344556; opacity:.96; }
+                body.theme-light .truss-label { fill:#201c17; stroke:rgba(255,255,255,.82); text-shadow:none; }
+                body.theme-light .node-tube,
+                body.theme-light .node-tube-corner,
+                body.theme-light .node-truss-rail { stroke:#526577; filter:drop-shadow(0 1px 1px rgba(255,255,255,.55)); }
+                body.theme-light .node-truss-web { stroke:#718394; }
+                body.theme-light .node-end-plate { stroke:#35495d; }
+                body.theme-light .node-core { fill:#8693a0; stroke:rgba(255,255,255,.92); }
+                body.theme-light .node-port-dot { fill:#596878; stroke:rgba(255,255,255,.85); }
+                body.theme-light .node-label { fill:#201c17; stroke:rgba(255,255,255,.88); }
+                body.theme-light .u003-reference-svg .u003-ref-tube { fill:#5f7182; stroke:rgba(255,255,255,.65); }
+                body.theme-light .block-calc-table-wrap,
+                body.theme-light .block-bom-wrap { background:#fffaf2; border-color:#d7c9b5; }
+                body.theme-light .block-calc-table caption { color:#7a5732; background:#efe4d4; border-bottom-color:#d7c9b5; }
+                body.theme-light .block-calc-table th,
+                body.theme-light .block-bom th { color:#5b432d; background:#efe4d4; border-bottom-color:#d7c9b5; }
+                body.theme-light .block-calc-table td,
+                body.theme-light .block-bom td { color:#201c17; border-bottom-color:#d7c9b5; }
+                body.theme-light .block-calc-table .block-muted-cell { color:#7a6f62; }
+                body.theme-light .block-calc-table .block-total-row td { color:#4c371f; background:#eadcc8; }
+                body.theme-light .block-load-launcher-button,
+                body.theme-light .block-settings-launcher-button { background:#fffaf2; border-color:#d7c9b5; color:#201c17; }
+                body.theme-light .block-load-launcher-status { color:#5b432d; background:#f4ecde; border-color:#d7c9b5; }
+                body.theme-light .block-load-grid, body.theme-light .block-load-panel, body.theme-light .block-load-section, body.theme-light .block-load-hero-card, body.theme-light .block-load-note, body.theme-light .block-load-modal { border-color:#d7c9b5; }
+                body.theme-light .block-load-modal { background:linear-gradient(180deg, #ffffff, #f6f1e8); color:#201c17; }
                 body.theme-light .block-load-hero-card, body.theme-light .block-load-panel, body.theme-light .block-load-section, body.theme-light .block-load-note { background:#fff7e9; }
-                body.theme-light .block-calc-table th, body.theme-light .block-calc-table caption, body.theme-light .block-bom th, body.theme-light .block-load-grid > div:nth-child(odd) { background:#f4ecde; }
-                body.theme-light .block-calc-table caption, body.theme-light .block-load-panel-title, body.theme-light .block-load-section h5 { color:#7a5732; }
-                body.theme-light .block-load-status.ok, body.theme-light .block-load-launcher-status.ok { color:#1d6b3a; background:#e4f5e7; }
-                body.theme-light .block-load-status.risk, body.theme-light .block-load-launcher-status.risk { color:#805b00; background:#fff2c9; }
-                body.theme-light .block-load-status.bad, body.theme-light .block-load-launcher-status.bad { color:#a53838; background:#ffe0dc; }
+                body.theme-light .block-load-grid > div { border-bottom-color:#d7c9b5; color:#201c17; }
+                body.theme-light .block-load-grid > div:nth-child(odd) { background:#f4ecde; color:#6d6255; }
+                body.theme-light .block-load-panel-title, body.theme-light .block-load-section h5 { color:#7a5732; }
+                body.theme-light .block-load-section h5 { background:#efe4d4; }
+                body.theme-light .block-load-status.ok, body.theme-light .block-load-launcher-status.ok { color:#1d6b3a; background:#e4f5e7; border-color:#a9d6b4; }
+                body.theme-light .block-load-status.risk, body.theme-light .block-load-launcher-status.risk { color:#805b00; background:#fff2c9; border-color:#e6cb78; }
+                body.theme-light .block-load-status.bad, body.theme-light .block-load-launcher-status.bad { color:#a53838; background:#ffe0dc; border-color:#e7aaa4; }
                 @media (max-width: 1050px) { .block-truss-layout, .block-project-panel { grid-template-columns: 1fr; } }
                 @media (max-width: 1050px) { .block-load-panel-grid, .block-load-hero, .block-load-sections { grid-template-columns:1fr; } }
                 @media (max-width: 700px) { .block-truss-controls, .block-truss-prices { grid-template-columns: repeat(2, minmax(0,1fr)); } .block-library { grid-template-columns: repeat(auto-fill, minmax(78px,1fr)); } .block-truss-header { flex-direction:column; } }
@@ -8370,6 +8443,90 @@ function nodeSvg(item, spec){
         const MICRO_DEFAULTS = Object.freeze({
             dx:0, dy:0, scale:1, scaleX:1, scaleY:1, rotate:0, opacity:1, brightness:1, lineWidth:0, fill:'', stroke:''
         });
+        const MICRO_ADMIN_PIN = '7663';
+        const MICRO_PIN_SESSION_KEY = 'feg.micro.admin.pin.ok';
+        function microAdminUnlocked(){
+            try { return sessionStorage.getItem(MICRO_PIN_SESSION_KEY) === '1'; }
+            catch (e) { return false; }
+        }
+        function microSetAdminUnlocked(){
+            try { sessionStorage.setItem(MICRO_PIN_SESSION_KEY, '1'); }
+            catch (e) {}
+        }
+        function microEnsurePinModal(){
+            let modal = document.getElementById('microPinModal');
+            if (modal) return modal;
+            modal = document.createElement('div');
+            modal.id = 'microPinModal';
+            modal.className = 'micro-pin-backdrop';
+            modal.setAttribute('aria-hidden', 'true');
+            modal.innerHTML = `
+                <div class="micro-pin-modal" role="dialog" aria-modal="true" aria-label="PIN-код админ-калибровки SVG">
+                    <h4>Доступ к админ-калибровке</h4>
+                    <p>Введите PIN-код, чтобы открыть настройки SVG-калибровки выбранного элемента.</p>
+                    <input id="microPinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="••••">
+                    <div id="microPinError" class="micro-pin-error"></div>
+                    <div class="micro-pin-actions">
+                        <button type="button" data-micro-pin-action="cancel">Отмена</button>
+                        <button class="primary" type="button" data-micro-pin-action="submit">Открыть</button>
+                    </div>
+                </div>
+            `;
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) microClosePinModal();
+                const action = event.target && event.target.dataset ? event.target.dataset.microPinAction : '';
+                if (action === 'cancel') microClosePinModal();
+                if (action === 'submit') microSubmitPin();
+            });
+            modal.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') microSubmitPin();
+                if (event.key === 'Escape') microClosePinModal();
+            });
+            document.body.appendChild(modal);
+            return modal;
+        }
+        function microOpenPinModal(afterUnlock){
+            if (microAdminUnlocked()) {
+                if (typeof afterUnlock === 'function') afterUnlock();
+                return;
+            }
+            const modal = microEnsurePinModal();
+            modal._afterUnlock = afterUnlock;
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            const input = modal.querySelector('#microPinInput');
+            const err = modal.querySelector('#microPinError');
+            if (err) err.textContent = '';
+            if (input) {
+                input.value = '';
+                setTimeout(() => input.focus(), 0);
+            }
+        }
+        function microClosePinModal(){
+            const modal = document.getElementById('microPinModal');
+            if (!modal) return;
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+        function microSubmitPin(){
+            const modal = document.getElementById('microPinModal');
+            if (!modal) return;
+            const input = modal.querySelector('#microPinInput');
+            const err = modal.querySelector('#microPinError');
+            const pin = input ? String(input.value || '').trim() : '';
+            if (pin === MICRO_ADMIN_PIN) {
+                microSetAdminUnlocked();
+                microClosePinModal();
+                if (typeof showToast === 'function') showToast('Админ-калибровка открыта');
+                if (typeof modal._afterUnlock === 'function') modal._afterUnlock();
+                return;
+            }
+            if (err) err.textContent = 'Неверный PIN-код';
+            if (input) {
+                input.select();
+                input.focus();
+            }
+        }
         function microGet(item){
             if (!item) return { ...MICRO_DEFAULTS };
             const typeDefault = microGetTypeDefault(item.type, item.r || 0);
@@ -8445,6 +8602,9 @@ function nodeSvg(item, spec){
             document.body.appendChild(btn);
         }
         function microOpen(){
+            microOpenPinModal(microOpenUnlocked);
+        }
+        function microOpenUnlocked(){
             let panel = document.getElementById('microTunerPanel');
             if (!panel) panel = microCreatePanel();
             microFill();
